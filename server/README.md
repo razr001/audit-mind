@@ -1,6 +1,6 @@
 # AuditMind Server 启动与部署说明
 
-本文以当前 `server/` 代码和 Compose 配置为准，说明从空环境启动本地开发服务，以及在生产环境部署 API、Worker 和基础设施的步骤。更完整的业务流程和架构说明见 [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md)。
+本文以当前 `server/` 代码和 Compose 配置为准，说明从空环境启动本地开发服务，以及在生产环境部署 API、Worker 和基础设施的步骤。
 
 ## 1. 运行组成
 
@@ -29,20 +29,20 @@ AuditMind Server 不是只启动 FastAPI 就能完整工作。一个可用环境
 
 完成 `.env` 配置、基础设施启动和数据库迁移后，还必须初始化登录账号并启动 Worker。
 
-### 2.1 初始化管理员登录账号
+### 2.1 初始化首个登录账号
 
-先通过 Alembic 初始化数据库，再创建用户名为 `admin` 的初始账号：
+先通过 Alembic 初始化数据库，再创建首个登录账号。以下使用 `auditmind` 作为示例用户名，可以替换为实际需要的名称：
 
 ```powershell
 uv run alembic upgrade head
-uv run python -m scripts.manage_users create admin
+uv run python -m scripts.manage_users create auditmind
 ```
 
 首次迁移 `0001_initial_schema` 会读取 `database/init.sql` 创建完整表结构。不要直接通过 `psql` 导入该文件；`alembic_version` 由 Alembic 自己管理。以后升级仍执行同一条 `uv run alembic upgrade head` 命令。
 
 脚本会在终端中提示输入两次密码，密码不会显示在屏幕上。成功时会输出创建的用户名和用户 ID。
 
-当前用户模型只有用户名和密码，尚未区分管理员、普通用户等角色；这里的 `admin` 是约定的首个管理账号名称，不代表数据库中存在额外的管理员角色字段。
+当前用户模型只有用户名和密码，不区分管理员、普通用户等角色。
 
 常用账号维护命令：
 
@@ -50,14 +50,14 @@ uv run python -m scripts.manage_users create admin
 # 查看所有账号
 uv run python -m scripts.manage_users list
 
-# 重置 admin 密码
-uv run python -m scripts.manage_users set-password admin
+# 重置 auditmind 密码
+uv run python -m scripts.manage_users set-password auditmind
 
 # 删除指定账号
 uv run python -m scripts.manage_users delete username
 ```
 
-这些命令必须在 `server/` 目录执行，并且 `.env` 中的 `DATABASE_URL`、`REDIS_URL` 必须可连接。修改密码或删除用户时，服务会同时使其已有 Refresh Token 失效。
+这些命令必须在 `server/` 目录执行，并且 `.env` 中的 `DATABASE_URL` 必须可连接。修改密码或删除用户时，还必须保证 `REDIS_URL` 可连接，服务会同时使该用户已有的 Refresh Token 失效。
 
 ### 2.2 启动 Dramatiq Worker
 
@@ -158,7 +158,7 @@ uv run python scripts/bootstrap_infrastructure.py
 - Elasticsearch：`http://localhost:9200`
 - Kibana：`http://localhost:5601`
 
-FastAPI 使用 `ELASTICSEARCH_API_KEY`，不要把 `elastic` 管理员密码或 `KIBANA_SYSTEM_PASSWORD` 写入业务 `.env`。
+FastAPI 使用 `ELASTICSEARCH_API_KEY`，不要把 `elastic` 管理员密码或 `docker/kibana/.env` 中的 `ELASTICSEARCH_PASSWORD` 写入业务 `.env`。
 
 ### 3.5 启动数据库、缓存、对象存储和日志系统
 
@@ -237,13 +237,13 @@ AI_EMBEDDING_DIMENSIONS=1024
 
 护栏和查询改写模型未配置时回退到主模型。Reranker 未配置时跳过精排。视觉模型三项任一为空时关闭视觉补充，不影响 MinerU 主流程。
 
-### 3.8 数据库迁移和默认账号
+### 3.8 数据库迁移和初始账号
 
 开发环境和已有数据库使用 Alembic：
 
 ```powershell
 uv run alembic upgrade head
-uv run python -m scripts.manage_users create admin
+uv run python -m scripts.manage_users create auditmind
 ```
 
 首次迁移会自动执行 [`database/init.sql`](database/init.sql)，不需要手工导入 SQL。
@@ -252,7 +252,7 @@ uv run python -m scripts.manage_users create admin
 
 ```powershell
 uv run python -m scripts.manage_users list
-uv run python -m scripts.manage_users set-password admin
+uv run python -m scripts.manage_users set-password auditmind
 uv run python -m scripts.manage_users delete username
 ```
 
@@ -261,8 +261,12 @@ uv run python -m scripts.manage_users delete username
 终端一：
 
 ```powershell
-uv run uvicorn app.main:app --host 127.0.0.1 --port 8181 --reload
+uv run auditmind-api --host 127.0.0.1 --port 8181 --reload
 ```
+
+请通过项目提供的 `auditmind-api` 入口启动 API。该入口会在 Windows 上使用
+`SelectorEventLoop`，避免 Agent PostgreSQL checkpointer 与默认事件循环不兼容；
+直接执行 `uvicorn app.main:app` 会绕过这项兼容处理。
 
 终端二：
 
@@ -362,7 +366,7 @@ npm run build
 2. 检查 PostgreSQL、Redis、MinIO、Elasticsearch、MinerU 和模型服务。
 3. 停止旧 Worker 接收新任务，并等待在途任务结束。
 4. 只由一个部署实例执行 `uv run alembic upgrade head`。
-5. 首次部署运行 `uv run python -m scripts.manage_users create admin`。
+5. 首次部署运行 `uv run python -m scripts.manage_users create auditmind`（用户名可自定义）。
 6. 启动新 Worker，然后启动或滚动更新 FastAPI。
 7. 发布 `web/dist` 并重载 Nginx。
 8. 检查健康接口、Worker 日志，并跑通一条真实法规和审计链路。
@@ -514,9 +518,12 @@ curl.exe http://127.0.0.1:8181/health
 后端检查：
 
 ```powershell
+uv run pyright
+uv run ruff check app scripts test
 uv run pytest
-uv run ruff check app test
 ```
+
+`pyrightconfig.json` 默认检查 `app/` 和 `scripts/`；`pyright`、`ruff` 或 `pytest` 任一失败都应阻止发布。
 
 前端检查：
 

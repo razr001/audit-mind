@@ -21,7 +21,6 @@ from bootstrap_infrastructure import (
 	update_env,
 )
 
-
 KIBANA_STATUS_URL = "http://localhost:5601/api/status"
 
 

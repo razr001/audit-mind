@@ -42,11 +42,12 @@ PostgreSQL 中已经构建完成的 Regulation 和 RegulationChunk，使用当�
 
 from __future__ import annotations
 
+# 该脚本必须先把 server 根目录加入 sys.path，随后才能导入 app 包。
+# ruff: noqa: E402
 import argparse
 import asyncio
 import sys
 from pathlib import Path
-
 
 # 直接执行 ``python scripts/xxx.py`` 时，sys.path 默认只有 scripts 目录。
 # 显式加入 server 根目录，保证脚本在未把项目安装成包的空机器上也能导入 app。
