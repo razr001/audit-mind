@@ -1,0 +1,79 @@
+// 发现 Docker 守护进程中的容器。Compose 项目标签会在下一阶段限制采集
+// 范围，避免把同一台开发机上的无关容器日志发送到 AuditMind Loki。
+discovery.docker "local" {
+  host             = "unix:///var/run/docker.sock"
+  refresh_interval = "5s"
+}
+
+discovery.relabel "auditmind_containers" {
+  targets = discovery.docker.local.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
+    regex         = "auditmind-server"
+    action        = "keep"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "service"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    replacement   = "$1"
+    target_label  = "container"
+  }
+}
+
+// 收集 Compose 容器 stdout/stderr。environment/service/container 都是
+// 低基数标签；regulation_id、user_id 等业务 ID 必须留在 JSON 内容中。
+loki.source.docker "auditmind" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.auditmind_containers.output
+  labels     = {
+    "environment" = sys.env("AUDITMIND_ENVIRONMENT"),
+    "platform"    = "docker",
+  }
+  forward_to = [loki.process.auditmind.receiver]
+}
+
+// 本地 FastAPI 通常由 PyCharm/命令行运行，不属于 Docker，所以额外读取
+// app/core/logger.py 写入的轮转 JSONL。glob 会同时覆盖历史轮转文件。
+local.file_match "auditmind_api" {
+  path_targets = [{
+    "__path__"    = "/var/log/auditmind/*.jsonl*",
+    "service"     = "auditmind-api",
+    "environment" = sys.env("AUDITMIND_ENVIRONMENT"),
+    "platform"    = "host-file",
+  }]
+}
+
+loki.source.file "auditmind_api" {
+  targets    = local.file_match.auditmind_api.targets
+  forward_to = [loki.process.auditmind.receiver]
+}
+
+loki.process "auditmind" {
+  // AuditMind 应用日志是 JSON；其他容器的普通文本无法解析时仍会原样发送。
+  stage.json {
+    expressions = {
+      level = "level",
+    }
+  }
+
+  stage.labels {
+    values = {
+      level = "",
+    }
+  }
+
+  forward_to = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

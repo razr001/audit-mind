@@ -1,0 +1,12 @@
+###
+POST http://127.0.0.1:8000/document/upload
+Authorization: Bearer {{access_token}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="第一证券.pdf"
+
+< {{pdf_path}}
+--WebAppBoundary--
+
+###

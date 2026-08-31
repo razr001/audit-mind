@@ -1,0 +1,20 @@
+.venv/
+
+.env
+.env.*
+!.env.example
+
+__pycache__/
+*.py[cod]
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# 本地结构化日志由 Alloy 采集，不进入版本库。
+logs/
+
+.idea/
+/docs/.obsidian/

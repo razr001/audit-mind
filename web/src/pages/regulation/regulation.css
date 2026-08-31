@@ -1,0 +1,627 @@
+/* Ant Design renders these inner nodes; page composition uses Tailwind utilities. */
+.regulation-table-card .ant-table { background: transparent; }
+.regulation-table-card .ant-table-thead>tr>th { height: 48px; color: var(--muted); background: rgba(128,241,198,.025); border-bottom-color: var(--line); font-size: 10px; font-weight: 600; letter-spacing: .4px; }
+.regulation-table-card .ant-table-tbody>tr>td { height: 66px; border-bottom-color: var(--line); font-size: 11px; }
+.regulation-table-card .ant-table-tbody>tr:hover>td { background: rgba(128,241,198,.035) !important; }
+.regulation-table-card .ant-pagination {
+  margin: 20px 24px !important;
+}
+
+.regulation-create-modal .ant-upload-wrapper { display: block; }
+.regulation-create-modal .ant-upload-drag { min-height: 72px; padding: 0; border-color: #294038; border-radius: 11px; background: #0e1d18; }
+.regulation-create-modal .ant-upload-drag:hover { border-color: rgba(128,241,198,.45); background: #10221c; }
+.regulation-create-modal .ant-form-item { margin-bottom: 11px; }
+.regulation-create-modal .ant-form-item-label { padding-bottom: 4px; }
+.regulation-create-modal .ant-form-item-label>label { height: auto; color: #879b93; font-size: 10px; }
+
+html[data-theme="light"] .regulation-table-card .ant-table-thead>tr>th,
+html[data-theme="light"] .regulation-table-card .ant-table-tbody>tr:hover>td { background: rgba(20,125,99,.035) !important; }
+html[data-theme="light"] .regulation-create-modal .ant-upload-drag { border-color: #d9e3de; background: #f6f9f6; }
+html[data-theme="light"] .regulation-create-modal .ant-form-item-label>label { color: #65776f; }
+
+.regulation-detail-hero,
+.regulation-detail-card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(15, 29, 24, .96), rgba(9, 20, 17, .96));
+  box-shadow: 0 18px 45px rgba(0, 0, 0, .08);
+}
+
+html[data-theme="light"] .regulation-detail-hero,
+html[data-theme="light"] .regulation-detail-card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, .99), rgba(249, 251, 248, .97));
+}
+
+.regulation-detail-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+}
+
+.regulation-detail-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: none;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--mint) 28%, transparent);
+  border-radius: 14px 14px 14px 5px;
+  background: color-mix(in srgb, var(--mint) 8%, transparent);
+  color: var(--mint);
+  font-size: 17px;
+}
+
+.regulation-detail-hero h1 {
+  margin: 0;
+  font-family: Manrope, sans-serif;
+  font-size: clamp(17px, 1.45vw, 22px);
+  line-height: 1.3;
+}
+
+.regulation-detail-hero p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.regulation-detail-card {
+  padding: 22px 24px;
+  margin-top: 14px;
+}
+
+.regulation-detail-card > header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+  color: var(--mint);
+}
+
+.regulation-detail-card > header strong,
+.regulation-detail-card > header span {
+  display: block;
+}
+
+.regulation-detail-card > header strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.regulation-detail-card > header span {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.regulation-stage-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.regulation-stage-grid > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--mint) 3%, transparent);
+  font-size: 11px;
+}
+
+@media (max-width: 760px) {
+  .regulation-detail-hero {
+    padding: 15px;
+  }
+
+  .regulation-detail-card {
+    padding: 18px;
+  }
+
+  .regulation-stage-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* 法规详情工作台：左侧保留可核验原文，右侧展示 PostgreSQL 中的结构化规则。 */
+.regulation-detail-page {
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+.regulation-detail-meta {
+  display: flex;
+  align-items: stretch;
+  gap: 1px;
+  margin-bottom: 14px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--line);
+}
+
+.regulation-detail-meta > div,
+.regulation-detail-meta > a {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 150px;
+  flex-direction: column;
+  justify-content: center;
+  padding: 11px 15px;
+  background: color-mix(in srgb, var(--panel) 98%, transparent);
+}
+
+.regulation-detail-meta span {
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: .5px;
+}
+
+.regulation-detail-meta strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.regulation-detail-meta > a {
+  align-items: center;
+  flex-direction: row;
+  gap: 7px;
+  color: var(--mint);
+  font-size: 11px;
+}
+
+.regulation-detail-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1.34fr) minmax(420px, .86fr);
+  gap: 14px;
+  min-height: 720px;
+  height: calc(100vh - 292px);
+}
+
+.regulation-source-pane,
+.regulation-rule-pane {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: linear-gradient(145deg, rgba(15, 29, 24, .97), rgba(7, 17, 14, .98));
+  box-shadow: 0 20px 45px rgba(0, 0, 0, .12);
+}
+
+.regulation-workbench-heading {
+  display: flex;
+  min-height: 62px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.regulation-workbench-title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.regulation-workbench-title > div {
+  min-width: 0;
+}
+
+.regulation-workbench-title strong,
+.regulation-workbench-title span {
+  display: block;
+}
+
+.regulation-workbench-title strong {
+  color: var(--text);
+  font: 600 12px Manrope, sans-serif;
+}
+
+.regulation-workbench-title > div > span {
+  max-width: 360px;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.regulation-workbench-icon {
+  display: grid !important;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--mint) 22%, transparent);
+  border-radius: 9px 9px 9px 3px;
+  background: color-mix(in srgb, var(--mint) 8%, transparent);
+  color: var(--mint);
+}
+
+.regulation-source-stage {
+  position: relative;
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  background:
+    radial-gradient(circle at 50% 0, rgba(128, 241, 198, .045), transparent 34%),
+    #07110f;
+}
+
+.regulation-pdf-viewer {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.regulation-pdf-toolbar {
+  display: flex;
+  min-height: 46px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  background: color-mix(in srgb, var(--panel) 98%, transparent);
+  font-size: 10px;
+}
+
+.regulation-pdf-toolbar-divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 3px;
+  background: var(--line);
+}
+
+.regulation-pdf-stage {
+  position: relative;
+  min-height: 0;
+  flex: 1;
+  padding: 24px;
+  overflow: auto;
+  background: #111916;
+}
+
+.regulation-pdf-loading {
+  position: sticky;
+  z-index: 5;
+  top: 50%;
+  left: 50%;
+}
+
+.regulation-pdf-page {
+  position: relative;
+  width: max-content;
+  margin: 0 auto;
+  box-shadow: 0 14px 42px rgba(0, 0, 0, .38);
+}
+
+.regulation-pdf-page canvas {
+  display: block;
+  background: white;
+}
+
+.regulation-pdf-highlight-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.regulation-pdf-highlight {
+  position: absolute;
+  z-index: 2;
+  border: 2px solid #ff5d50;
+  border-radius: 2px;
+  background: rgba(255, 93, 80, .3);
+  box-shadow: 0 0 0 4px rgba(255, 93, 80, .12), 0 0 22px rgba(255, 93, 80, .16);
+  animation: regulation-highlight-in .28s ease-out both;
+}
+
+@keyframes regulation-highlight-in {
+  from { opacity: 0; transform: scale(.985); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.regulation-pane-state {
+  display: grid;
+  min-height: 360px;
+  place-content: center;
+  gap: 10px;
+  padding: 24px;
+  color: var(--muted);
+  font-size: 10px;
+  text-align: center;
+}
+
+.regulation-markdown-document {
+  max-width: 860px;
+  min-height: 100%;
+  padding: clamp(28px, 5vw, 68px);
+  margin: 0 auto;
+  color: #26342f;
+  background: #fbfcf9;
+  box-shadow: 0 0 45px rgba(0, 0, 0, .2);
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+.regulation-markdown-document h1,
+.regulation-markdown-document h2,
+.regulation-markdown-document h3 {
+  color: #153c31;
+  font-family: Manrope, "Noto Sans SC", sans-serif;
+}
+
+.regulation-markdown-document table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.regulation-markdown-document th,
+.regulation-markdown-document td {
+  padding: 7px 9px;
+  border: 1px solid #ccd9d3;
+}
+
+.regulation-markdown-image {
+  display: inline-block;
+  padding: 3px 7px;
+  border-radius: 5px;
+  color: #567068;
+  background: #eaf1ed;
+  font-size: 10px;
+}
+
+.regulation-rule-total {
+  flex: none;
+  padding: 4px 9px;
+  border-radius: 999px;
+  color: var(--mint);
+  background: color-mix(in srgb, var(--mint) 8%, transparent);
+  font-size: 9px;
+}
+
+.regulation-rule-scroll {
+  min-height: 0;
+  flex: 1;
+  padding: 12px;
+  overflow: auto;
+  transition: opacity .18s ease;
+}
+
+.regulation-rule-scroll.is-fetching {
+  opacity: .56;
+  pointer-events: none;
+}
+
+.regulation-rule-skeleton {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+
+.regulation-rule-card {
+  position: relative;
+  padding: 15px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--mint) 2.5%, transparent);
+  transition: border-color .2s ease, transform .2s ease, background .2s ease;
+}
+
+.regulation-rule-card::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  content: "";
+  background: var(--mint);
+  opacity: .42;
+}
+
+.regulation-rule-card:hover {
+  border-color: color-mix(in srgb, var(--mint) 26%, transparent);
+  background: color-mix(in srgb, var(--mint) 4%, transparent);
+  transform: translateY(-1px);
+}
+
+.regulation-rule-card.is-selected {
+  border-color: color-mix(in srgb, var(--mint) 58%, transparent);
+  background: color-mix(in srgb, var(--mint) 7%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mint) 7%, transparent);
+}
+
+.regulation-rule-card.is-selected::before {
+  width: 3px;
+  opacity: 1;
+}
+
+.regulation-rule-select {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.regulation-rule-select:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--mint) 70%, transparent);
+  outline-offset: 5px;
+}
+
+.regulation-rule-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.regulation-rule-number {
+  color: color-mix(in srgb, var(--mint) 70%, var(--muted));
+  font: 600 10px Manrope, sans-serif;
+  letter-spacing: .6px;
+}
+
+.regulation-rule-card h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.regulation-rule-card-top > div > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.regulation-rule-facts {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.regulation-rule-facts p {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  gap: 7px;
+  margin: 0;
+  color: color-mix(in srgb, var(--text) 82%, var(--muted));
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.regulation-rule-facts p span,
+.regulation-rule-list > span {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.regulation-rule-list {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.regulation-rule-list ul {
+  padding-left: 15px;
+  margin: 0;
+  color: color-mix(in srgb, var(--text) 82%, var(--muted));
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.regulation-rule-card blockquote {
+  padding: 10px 11px;
+  margin: 12px 0 0;
+  border-left: 2px solid color-mix(in srgb, var(--mint) 55%, transparent);
+  border-radius: 0 7px 7px 0;
+  color: var(--muted);
+  background: rgba(0, 0, 0, .1);
+  font-size: 9px;
+  line-height: 1.65;
+}
+
+.regulation-rule-pagination {
+  display: flex;
+  flex: none;
+  justify-content: flex-end;
+  padding: 10px 12px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+}
+
+html[data-theme="light"] .regulation-source-pane,
+html[data-theme="light"] .regulation-rule-pane {
+  background: linear-gradient(145deg, rgba(255, 255, 255, .99), rgba(247, 250, 247, .98));
+}
+
+html[data-theme="light"] .regulation-source-stage {
+  background: #e8ece9;
+}
+
+html[data-theme="light"] .regulation-rule-card blockquote {
+  background: rgba(25, 72, 55, .04);
+}
+
+@media (max-width: 1080px) {
+  .regulation-detail-workbench {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .regulation-source-pane,
+  .regulation-rule-pane {
+    min-height: 720px;
+  }
+}
+
+@media (max-width: 760px) {
+  .regulation-detail-meta {
+    flex-wrap: wrap;
+    gap: 1px;
+  }
+
+  .regulation-detail-meta > div,
+  .regulation-detail-meta > a {
+    min-width: calc(50% - 1px);
+  }
+
+  .regulation-source-pane,
+  .regulation-rule-pane {
+    min-height: 620px;
+  }
+
+  .regulation-workbench-heading {
+    align-items: flex-start;
+  }
+
+  .regulation-workbench-heading .ant-btn {
+    font-size: 0;
+  }
+
+  .regulation-workbench-heading .ant-btn .anticon {
+    margin: 0;
+    font-size: 13px;
+  }
+
+  .regulation-pdf-toolbar {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
+  .regulation-pdf-stage {
+    padding: 10px;
+  }
+}

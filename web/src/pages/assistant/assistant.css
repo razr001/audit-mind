@@ -1,0 +1,51 @@
+.assistant-composer-input.ant-input,
+.assistant-composer-input.ant-input:hover,
+.assistant-composer-input.ant-input:focus {
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.assistant-composer-input.ant-input {
+  padding: 8px 10px !important;
+  color: var(--text) !important;
+  font-size: 13px !important;
+  line-height: 1.7 !important;
+  resize: none !important;
+}
+
+.assistant-composer-input.ant-input::placeholder { color: var(--muted) !important; }
+
+.assistant-markdown { color: var(--text); font-size: 13px; line-height: 1.85; }
+.assistant-markdown > :first-child { margin-top: 0; }
+.assistant-markdown > :last-child { margin-bottom: 0; }
+.assistant-markdown p, .assistant-markdown ul, .assistant-markdown ol { margin: 0 0 12px; }
+.assistant-markdown h1, .assistant-markdown h2, .assistant-markdown h3 { margin: 20px 0 10px; font-family: "Manrope", sans-serif; }
+.assistant-markdown h1 { font-size: 20px; }
+.assistant-markdown h2 { font-size: 17px; }
+.assistant-markdown h3 { font-size: 15px; }
+.assistant-markdown ul, .assistant-markdown ol { padding-left: 22px; }
+.assistant-markdown code { border: 1px solid var(--line); border-radius: 5px; background: rgba(128, 241, 198, .06); padding: 1px 5px; font-size: 12px; }
+.assistant-markdown pre { overflow-x: auto; border: 1px solid var(--line); border-radius: 11px; background: rgba(0, 0, 0, .22); padding: 14px; }
+.assistant-markdown pre code { border: 0; background: transparent; padding: 0; }
+.assistant-markdown blockquote { margin: 12px 0; border-left: 2px solid var(--mint); padding-left: 13px; color: var(--muted); }
+.assistant-markdown table { width: 100%; border-collapse: collapse; margin: 14px 0; }
+.assistant-markdown th, .assistant-markdown td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; }
+
+.assistant-thinking-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--mint);
+  box-shadow: 0 0 0 0 rgba(128, 241, 198, .5);
+  animation: assistant-pulse 1.35s infinite;
+}
+
+.assistant-history-drawer .ant-drawer-body { padding: 0 !important; }
+.assistant-history-drawer aside { display: flex !important; width: 100% !important; border-right: 0 !important; }
+
+@keyframes assistant-pulse {
+  70% { box-shadow: 0 0 0 8px rgba(128, 241, 198, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(128, 241, 198, 0); }
+}

@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="960" viewBox="0 0 1600 960" role="img" aria-labelledby="title desc">
+  <title id="title">AuditMind 系统架构</title>
+  <desc id="desc">展示 Web、FastAPI、System Agent、Dramatiq Worker、AI 服务、数据存储和可观测性组件之间的关系。</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#071713"/>
+      <stop offset="1" stop-color="#0b201a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6ee7c2"/>
+      <stop offset="1" stop-color="#2db38b"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.28"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#58c9a6"/>
+    </marker>
+    <style>
+      .title { font: 700 38px Inter, "Microsoft YaHei", sans-serif; fill: #edf8f4; }
+      .subtitle { font: 400 17px Inter, "Microsoft YaHei", sans-serif; fill: #8eaaa1; }
+      .layer { font: 600 15px Inter, "Microsoft YaHei", sans-serif; fill: #58c9a6; letter-spacing: 1.5px; }
+      .box-title { font: 700 20px Inter, "Microsoft YaHei", sans-serif; fill: #edf8f4; }
+      .box-copy { font: 400 14px Inter, "Microsoft YaHei", sans-serif; fill: #9db5ad; }
+      .store-title { font: 700 17px Inter, "Microsoft YaHei", sans-serif; fill: #edf8f4; }
+      .store-copy { font: 400 13px Inter, "Microsoft YaHei", sans-serif; fill: #88a39a; }
+      .flow { fill: none; stroke: #58c9a6; stroke-width: 2.5; marker-end: url(#arrow); }
+      .flow-muted { fill: none; stroke: #37695a; stroke-width: 2; marker-end: url(#arrow); stroke-dasharray: 7 7; }
+      .panel { fill: #102a22; stroke: #245444; stroke-width: 1.5; }
+      .panel-accent { fill: #123329; stroke: #58c9a6; stroke-width: 2; }
+      .chip { fill: #0c221b; stroke: #275545; stroke-width: 1.5; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="960" rx="28" fill="url(#background)"/>
+  <circle cx="1460" cy="80" r="170" fill="#173c31" opacity="0.25"/>
+  <circle cx="130" cy="880" r="210" fill="#12372c" opacity="0.18"/>
+
+  <g transform="translate(72 68)">
+    <rect width="42" height="42" rx="12" fill="#173e32" stroke="#4bbd99"/>
+    <path d="M21 8 L34 21 L21 34 L8 21 Z" fill="url(#accent)"/>
+    <text x="62" y="31" class="title">AuditMind 系统架构</text>
+    <text x="62" y="60" class="subtitle">法规知识生产 · 文档合规审计 · 可执行系统 Agent</text>
+  </g>
+
+  <text x="72" y="168" class="layer">交互层</text>
+  <g filter="url(#shadow)">
+    <rect x="72" y="188" width="1456" height="100" rx="18" class="panel"/>
+    <rect x="98" y="211" width="310" height="54" rx="14" class="chip"/>
+    <text x="126" y="235" class="box-title">React Web</text>
+    <text x="126" y="255" class="box-copy">任务 · 知识库 · Agent · 证据高亮</text>
+    <rect x="452" y="211" width="298" height="54" rx="14" class="chip"/>
+    <text x="480" y="235" class="box-title">HTTP / SSE</text>
+    <text x="480" y="255" class="box-copy">REST API · 流式进度 · JWT</text>
+    <rect x="794" y="211" width="310" height="54" rx="14" class="chip"/>
+    <text x="822" y="235" class="box-title">PDF / Markdown</text>
+    <text x="822" y="255" class="box-copy">原文预览 · 坐标定位 · 引用来源</text>
+    <rect x="1148" y="211" width="354" height="54" rx="14" class="chip"/>
+    <text x="1176" y="235" class="box-title">Nginx / Vite</text>
+    <text x="1176" y="255" class="box-copy">静态资源 · API 与 MinIO 同源代理</text>
+  </g>
+
+  <path d="M800 288 L800 326" class="flow"/>
+
+  <text x="72" y="340" class="layer">应用与编排层</text>
+  <g filter="url(#shadow)">
+    <rect x="72" y="360" width="430" height="202" rx="20" class="panel-accent"/>
+    <text x="104" y="398" class="box-title">FastAPI API</text>
+    <text x="104" y="426" class="box-copy">鉴权、参数校验、同步查询、任务投递</text>
+    <rect x="104" y="456" width="170" height="38" rx="10" class="chip"/>
+    <text x="126" y="481" class="store-copy">API → Service</text>
+    <rect x="290" y="456" width="180" height="38" rx="10" class="chip"/>
+    <text x="309" y="481" class="store-copy">Repository → Infra</text>
+    <text x="104" y="528" class="box-copy">短事务 · 用户隔离 · 可信响应模型</text>
+
+    <rect x="538" y="360" width="494" height="202" rx="20" class="panel-accent"/>
+    <text x="570" y="398" class="box-title">System Agent · LangGraph</text>
+    <text x="570" y="426" class="box-copy">意图路由、工具裁剪、法规问答与合同起草</text>
+    <rect x="570" y="456" width="204" height="38" rx="10" class="chip"/>
+    <text x="590" y="481" class="store-copy">只读工具直接执行</text>
+    <rect x="790" y="456" width="210" height="38" rx="10" class="chip"/>
+    <text x="809" y="481" class="store-copy">写操作人工确认</text>
+    <text x="570" y="528" class="box-copy">Checkpoint · 幂等围栏 · 执行凭证 · 安全护栏</text>
+
+    <rect x="1068" y="360" width="460" height="202" rx="20" class="panel-accent"/>
+    <text x="1100" y="398" class="box-title">Dramatiq Worker</text>
+    <text x="1100" y="426" class="box-copy">法规处理与文档审计长流水线</text>
+    <rect x="1100" y="456" width="180" height="38" rx="10" class="chip"/>
+    <text x="1120" y="481" class="store-copy">Redis Queue</text>
+    <rect x="1296" y="456" width="200" height="38" rx="10" class="chip"/>
+    <text x="1315" y="481" class="store-copy">Lease + Fencing</text>
+    <text x="1100" y="528" class="box-copy">可恢复状态机 · 失败重试 · 独立数据库会话</text>
+  </g>
+
+  <path d="M502 450 L538 450" class="flow"/>
+  <path d="M1032 450 L1068 450" class="flow"/>
+  <path d="M286 562 L286 626" class="flow"/>
+  <path d="M784 562 L784 626" class="flow"/>
+  <path d="M1298 562 L1298 626" class="flow"/>
+
+  <text x="72" y="640" class="layer">数据与 AI 能力层</text>
+  <g filter="url(#shadow)">
+    <rect x="72" y="660" width="250" height="150" rx="18" class="panel"/>
+    <text x="100" y="699" class="store-title">PostgreSQL</text>
+    <text x="100" y="728" class="store-copy">唯一业务事实源</text>
+    <text x="100" y="752" class="store-copy">任务、规则、证据、会话</text>
+    <rect x="100" y="773" width="90" height="5" rx="2.5" fill="#58c9a6"/>
+
+    <rect x="346" y="660" width="250" height="150" rx="18" class="panel"/>
+    <text x="374" y="699" class="store-title">Redis</text>
+    <text x="374" y="728" class="store-copy">队列、租约、协调状态</text>
+    <text x="374" y="752" class="store-copy">Refresh Token 与缓存</text>
+    <rect x="374" y="773" width="90" height="5" rx="2.5" fill="#58c9a6"/>
+
+    <rect x="620" y="660" width="250" height="150" rx="18" class="panel"/>
+    <text x="648" y="699" class="store-title">MinIO</text>
+    <text x="648" y="728" class="store-copy">PDF、Markdown、解析归档</text>
+    <text x="648" y="752" class="store-copy">原文件与局部图片</text>
+    <rect x="648" y="773" width="90" height="5" rx="2.5" fill="#58c9a6"/>
+
+    <rect x="894" y="660" width="250" height="150" rx="18" class="panel"/>
+    <text x="922" y="699" class="store-title">Elasticsearch</text>
+    <text x="922" y="728" class="store-copy">Chunk 与原子规则检索副本</text>
+    <text x="922" y="752" class="store-copy">BM25 · Vector · RRF</text>
+    <rect x="922" y="773" width="90" height="5" rx="2.5" fill="#58c9a6"/>
+
+    <rect x="1168" y="660" width="360" height="150" rx="18" class="panel"/>
+    <text x="1196" y="699" class="store-title">AI Services</text>
+    <text x="1196" y="728" class="store-copy">MinerU · LLM · LangExtract</text>
+    <text x="1196" y="752" class="store-copy">Embedding · Reranker · Vision</text>
+    <rect x="1196" y="773" width="90" height="5" rx="2.5" fill="#58c9a6"/>
+  </g>
+
+  <path d="M322 735 L346 735" class="flow-muted"/>
+  <path d="M596 735 L620 735" class="flow-muted"/>
+  <path d="M870 735 L894 735" class="flow-muted"/>
+  <path d="M1144 735 L1168 735" class="flow-muted"/>
+
+  <g transform="translate(72 856)">
+    <text class="layer" x="0" y="0">可观测性</text>
+    <text class="box-copy" x="112" y="0">API / Worker 日志</text>
+    <path d="M245 -6 L292 -6" class="flow-muted"/>
+    <text class="box-copy" x="310" y="0">Grafana Alloy</text>
+    <path d="M426 -6 L473 -6" class="flow-muted"/>
+    <text class="box-copy" x="491" y="0">Loki</text>
+    <path d="M550 -6 L597 -6" class="flow-muted"/>
+    <text class="box-copy" x="615" y="0">Grafana</text>
+    <text class="box-copy" x="1170" y="0">Kibana → Elasticsearch 运维视图</text>
+  </g>
+
+  <text x="72" y="922" class="subtitle">PostgreSQL 保存可信业务状态；Elasticsearch 与 Redis 均不替代事实数据。</text>
+</svg>

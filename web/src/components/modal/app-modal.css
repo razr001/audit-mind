@@ -1,0 +1,12 @@
+.app-modal .ant-modal-container { overflow: hidden; padding: 0; border: 1px solid rgba(145,190,173,.13); border-radius: 16px; background: #0b1613; box-shadow: 0 28px 90px rgba(0,0,0,.48); }
+.app-modal .ant-modal-header { margin: 0; padding: 16px 20px; border-bottom: 1px solid rgba(145,190,173,.09); background: #0b1613; }
+.app-modal .ant-modal-close { top: 16px; right: 16px; color: #6f837b; }
+.app-modal .ant-modal-close:hover { color: #d9e8e2; background: rgba(255,255,255,.04); }
+.app-modal .ant-modal-body { max-height: min(68vh,590px); padding: 16px 20px 2px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #2c453c transparent; }
+.app-modal .ant-modal-body::-webkit-scrollbar { width: 5px; }
+.app-modal .ant-modal-body::-webkit-scrollbar-thumb { border-radius: 5px; background: #2c453c; }
+.app-modal .ant-modal-footer { margin: 0; padding: 13px 20px 16px; border-top: 1px solid rgba(145,190,173,.09); background: #0b1613; }
+
+html[data-theme="light"] .app-modal .ant-modal-container,
+html[data-theme="light"] .app-modal .ant-modal-header,
+html[data-theme="light"] .app-modal .ant-modal-footer { border-color: #e1e8e4; background: #fbfcfa; box-shadow: 0 28px 80px rgba(33,62,51,.16); }

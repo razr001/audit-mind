@@ -1,0 +1,62 @@
+# MinerU NVIDIA/VLM inference service.
+#
+# Run this file only on a Linux machine with an NVIDIA GPU, compatible driver,
+# NVIDIA Container Toolkit and Docker Compose GPU support:
+#   docker compose -f docker-compose.nvidia.yml up -d --build
+#
+# Local development defaults to 127.0.0.1:30000. For a separate GPU server,
+# bind only its private interface, for example:
+#   MINERU_BIND_IP=192.168.10.20
+#
+# The AuditMind application then uses:
+#   MINERU_BACKEND=hybrid-http-client
+#   MINERU_SERVER_URL=http://192.168.10.20:30000
+name: auditmind-mineru-nvidia
+
+services:
+  mineru-openai-server:
+    build:
+      context: ./docker/mineru
+      dockerfile: Dockerfile
+      args:
+        MINERU_MODEL_DOWNLOAD_SOURCE: ${MINERU_MODEL_DOWNLOAD_SOURCE:-huggingface}
+    image: auditmind-mineru:3.4.2
+    container_name: mineru-openai-server
+    restart: unless-stopped
+    entrypoint: mineru-openai-server
+    command:
+      - --engine
+      - vllm
+      - --host
+      - 0.0.0.0
+      - --port
+      - "30000"
+      - --gpu-memory-utilization
+      - ${MINERU_GPU_MEMORY_UTILIZATION:-0.85}
+    environment:
+      MINERU_MODEL_SOURCE: local
+    ports:
+      - "${MINERU_BIND_IP:-127.0.0.1}:30000:30000"
+    ipc: host
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:30000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 40
+      start_period: 120s
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["${MINERU_GPU_DEVICE_ID:-0}"]
+              capabilities: [gpu]
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"

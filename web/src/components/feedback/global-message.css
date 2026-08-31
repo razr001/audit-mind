@@ -1,0 +1,5 @@
+html[data-theme="dark"] .ant-message-notice-content {
+  border: 1px solid rgba(128, 241, 198, .62) !important;
+  background: #101b17 !important;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, .42), inset 0 0 0 1px rgba(255, 255, 255, .018);
+}

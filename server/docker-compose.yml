@@ -1,0 +1,287 @@
+volumes:
+  elasticsearch_data:
+    name: elasticsearch_data
+  postgres_data:
+    name: postgres_data
+  redis_data:
+    name: redis_data
+  minio_data:
+    name: minio_data
+
+  loki_data:
+    name: loki_data
+  alloy_data:
+    name: alloy_data
+  grafana_data:
+    name: grafana_data
+
+name: auditmind-server
+services:
+
+  # The NVIDIA inference service is intentionally isolated in
+  # docker-compose.nvidia.yml. This API connects to the server_url supplied by
+  # AuditMind, which may point to localhost or a separate private GPU host.
+  mineru-api:
+    build:
+      context: ./docker/mineru
+      dockerfile: Dockerfile
+      args:
+        MINERU_MODEL_DOWNLOAD_SOURCE: ${MINERU_MODEL_DOWNLOAD_SOURCE:-huggingface}
+    image: auditmind-mineru:3.4.2
+    container_name: mineru-api
+    restart: unless-stopped
+    entrypoint: mineru-api
+    command:
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      # Required for hybrid-http-client. The API itself remains accessible
+      # only from this host; the model address comes from application config.
+      - --allow-public-http-client
+    environment:
+      MINERU_MODEL_SOURCE: local
+      MINERU_API_ENABLE_FASTAPI_DOCS: "0"
+      MINERU_API_MAX_CONCURRENT_REQUESTS: ${MINERU_API_MAX_CONCURRENT_REQUESTS:-2}
+      MINERU_API_TASK_RETENTION_SECONDS: ${MINERU_API_TASK_RETENTION_SECONDS:-86400}
+      MINERU_API_TASK_CLEANUP_INTERVAL_SECONDS: ${MINERU_API_TASK_CLEANUP_INTERVAL_SECONDS:-300}
+      # Parallel PDF rendering has caused nondeterministic output in some
+      # environments; one render worker favors correctness over throughput.
+      MINERU_PDF_RENDER_THREADS: ${MINERU_PDF_RENDER_THREADS:-1}
+    ports:
+      - "127.0.0.1:8000:8000"
+    # Makes the same local address work on Docker Desktop and Linux Docker.
+    # Production simply replaces it with the GPU machine's private IP.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    stop_grace_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+
+  elasticsearch:
+    build:
+      context: ./docker/elasticsearch
+      dockerfile: Dockerfile
+    image: elasticsearch-ik:9.3.4
+    container_name: elasticsearch-ik-9.3.4
+    # elastic 超级管理员密码只用于基础设施初始化和运维。
+    env_file:
+      - ./docker/elasticsearch/.env
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: true
+      xpack.security.http.ssl.enabled: false
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ports:
+      - "127.0.0.1:9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS -u elastic:$${ELASTIC_PASSWORD} http://localhost:9200/_cluster/health || exit 1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  # 在 Kibana 启动前，将其内部服务账号密码同步到 Elasticsearch。
+  # 这是一次性初始化任务；成功退出后 Kibana 才会启动。
+  kibana-setup:
+    image: elasticsearch-ik:9.3.4
+    container_name: kibana-setup-9.3.4
+    env_file:
+      - ./docker/elasticsearch/.env
+      - ./docker/kibana/.env
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    entrypoint: [ "/bin/bash", "-c" ]
+    command:
+      - |
+        set -euo pipefail
+
+        # 对密码进行 JSON 转义，避免特殊字符破坏请求内容。
+        escaped="$${ELASTICSEARCH_PASSWORD//\\/\\\\}"
+        escaped="$${escaped//\"/\\\"}"
+
+        http_code="$$(
+          printf '{"password":"%s"}' "$${escaped}" |
+          curl -sS -o /tmp/kibana-password-response -w '%{http_code}' \
+            -u "elastic:$${ELASTIC_PASSWORD}" \
+            -X POST http://elasticsearch:9200/_security/user/kibana_system/_password \
+            -H 'Content-Type: application/json' \
+            --data-binary @-
+        )"
+
+        if [ "$${http_code}" != "200" ]; then
+          cat /tmp/kibana-password-response >&2
+          exit 1
+        fi
+
+        echo 'kibana_system password synchronized successfully'
+    restart: "no"
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.3.4
+    container_name: kibana-9.3.4
+    # Kibana 的内部服务密码与 FastAPI 业务配置隔离保存。
+    env_file:
+      - ./docker/kibana/.env
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      ELASTICSEARCH_USERNAME: kibana_system
+    ports:
+      - "127.0.0.1:5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana-setup:
+        condition: service_completed_successfully
+
+  postgresql:
+      image: postgres:18
+      container_name: postgresql-18
+      environment:
+        POSTGRES_USER: hyperweave
+        POSTGRES_PASSWORD: hyperweave123
+        POSTGRES_DB: hyperweave
+      ports:
+        - "127.0.0.1:5432:5432"
+      volumes:
+        # PostgreSQL 18+ 的官方镜像建议挂载父目录，以兼容版本化数据目录。
+        - postgres_data:/var/lib/postgresql
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U hyperweave -d hyperweave"]
+        interval: 10s
+        timeout: 5s
+        retries: 10
+        start_period: 10s
+      restart: unless-stopped
+
+  redis:
+    image: redis:8
+    container_name: redis-8
+    environment:
+      REDIS_PASSWORD: redis123
+    command:
+      - /bin/sh
+      - -c
+      - exec redis-server --appendonly yes --requirepass "$${REDIS_PASSWORD}"
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD-SHELL", "REDISCLI_AUTH=$${REDIS_PASSWORD} redis-cli ping | grep -q PONG" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    environment:
+      # 保留用户指定的变量名，并同时设置当前 MinIO 使用的变量名。
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    command: server /data --console-address ":9001"
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  # Loki 只绑定本机回环地址；生产环境应通过带认证的内网反向代理访问，
+  # 不要直接把 Loki HTTP API 暴露到公网。
+  loki:
+    image: grafana/loki:3.7.2
+    container_name: auditmind-loki-3.7.2
+    command: ["-config.file=/etc/loki/loki-config.yml"]
+    ports:
+      - "127.0.0.1:3100:3100"
+    volumes:
+      - ./docker/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki_data:/loki
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  # Alloy 替代已 EOL 的 Promtail。它同时采集本 Compose 的容器 stdout，
+  # 以及宿主机运行 FastAPI 时写入 ./logs 的 JSONL 文件。
+  alloy:
+    image: grafana/alloy:v1.18.0
+    container_name: auditmind-alloy-1.18.0
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    environment:
+      AUDITMIND_ENVIRONMENT: ${ENVIRONMENT:-local}
+    ports:
+      - "127.0.0.1:12345:12345"
+    volumes:
+      - ./docker/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - ./logs:/var/log/auditmind:ro
+      # 只读 Docker socket 允许 Alloy 发现和读取容器日志。该权限仍可查看
+      # 容器元数据，因此生产环境必须把 Alloy 当作受信任基础设施运行。
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy_data:/var/lib/alloy/data
+    depends_on:
+      - loki
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  grafana:
+    image: grafana/grafana:13.1.0
+    container_name: auditmind-grafana-13.1.0
+    env_file:
+      # 只存 Grafana 基础设施管理员凭据，不放入业务 .env。
+      - ./docker/grafana/.env
+    environment:
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    ports:
+      # Windows/Docker Desktop 可能保留 2951-3050，宿主机改用 3101。
+      - "127.0.0.1:3101:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - loki
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"

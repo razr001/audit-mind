@@ -1,0 +1,59 @@
+# Pure-CPU MinerU API for machines without an NVIDIA GPU.
+#
+# Start:
+#   docker compose -f docker-compose.cpu.yml up -d --build
+#
+# AuditMind must use these application settings:
+#   MINERU_BASE_URL=http://127.0.0.1:8000
+#   MINERU_BACKEND=pipeline
+#   MINERU_SERVER_URL=
+#
+# MinerU officially supports Docker on Linux/WSL2. Apple Silicon can use the
+# default linux/amd64 emulation for development smoke tests, but it is slow and
+# is not an officially supported macOS deployment path.
+name: auditmind-mineru-cpu
+
+services:
+  mineru-api-cpu:
+    platform: ${MINERU_CPU_PLATFORM:-linux/amd64}
+    build:
+      context: ./docker/mineru
+      dockerfile: Dockerfile.cpu
+      args:
+        MINERU_MODEL_DOWNLOAD_SOURCE: ${MINERU_MODEL_DOWNLOAD_SOURCE:-huggingface}
+    image: auditmind-mineru-cpu:3.4.2
+    container_name: mineru-api-cpu
+    restart: unless-stopped
+    entrypoint: mineru-api
+    command:
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+    environment:
+      MINERU_MODEL_SOURCE: local
+      CUDA_VISIBLE_DEVICES: ""
+      MINERU_API_ENABLE_FASTAPI_DOCS: "0"
+      # CPU 推理不适合并行跑多个大文档，默认一次只处理一个任务。
+      MINERU_API_MAX_CONCURRENT_REQUESTS: ${MINERU_CPU_MAX_CONCURRENT_REQUESTS:-1}
+      MINERU_API_TASK_RETENTION_SECONDS: ${MINERU_API_TASK_RETENTION_SECONDS:-86400}
+      MINERU_API_TASK_CLEANUP_INTERVAL_SECONDS: ${MINERU_API_TASK_CLEANUP_INTERVAL_SECONDS:-300}
+      MINERU_PDF_RENDER_THREADS: ${MINERU_CPU_PDF_RENDER_THREADS:-1}
+      # 限制 ONNX/BLAS 线程，避免容器耗尽宿主机全部 CPU。
+      MINERU_INTRA_OP_NUM_THREADS: ${MINERU_CPU_INTRA_OP_NUM_THREADS:-4}
+      MINERU_INTER_OP_NUM_THREADS: ${MINERU_CPU_INTER_OP_NUM_THREADS:-1}
+      OMP_NUM_THREADS: ${MINERU_CPU_OMP_NUM_THREADS:-4}
+    ports:
+      - "127.0.0.1:${MINERU_CPU_API_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 40
+      start_period: 120s
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
