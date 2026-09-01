@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { UIMessageChunk } from 'ai'
-import { AssistantChatTransport, type AssistantUIMessage } from './assistant-transport'
+import {
+  AssistantChatTransport,
+  splitTextForTyping,
+  type AssistantUIMessage,
+} from './assistant-transport'
 
 const streamAssistantMessage = vi.hoisted(() => vi.fn())
 
@@ -34,6 +38,10 @@ function streamOptions() {
 }
 
 describe('AssistantChatTransport', () => {
+  it('splits server deltas into Unicode-safe typing chunks', () => {
+    expect(splitTextForTyping('法规😀审计助手')).toEqual(['法规', '😀审', '计助', '手'])
+  })
+
   it('creates the first turn without a conversation id and keeps the returned id internally', async () => {
     streamAssistantMessage.mockImplementation(async function* () {
       yield {

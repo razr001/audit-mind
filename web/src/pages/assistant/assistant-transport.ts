@@ -4,6 +4,11 @@ import { createRequestId } from '../../lib/request-id'
 import type { RegulationAnswerSource } from '../../service/regulation-queries'
 import i18n from '../../i18n'
 
+// useChat 当前每 25ms 最多刷新一次消息。动画间隔必须大于这个值，
+// 否则多个文本块会再次被合并，短回答看起来仍然像一次性出现。
+const TYPING_CHUNK_CHARACTERS = 2
+const TYPING_INTERVAL_MS = 32
+
 interface AssistantMessageMetadata {
   answered?: boolean
   status?: import('../../service/assistant').AssistantMessageStatus
@@ -64,7 +69,12 @@ export class AssistantChatTransport implements ChatTransport<AssistantUIMessage>
           controller.enqueue({ type: 'text-start', id: textPartId })
           started = true
         } else if (event.type === 'text-delta') {
-          controller.enqueue({ type: 'text-delta', id: textPartId, delta: event.data.textDelta })
+          await enqueueTextWithTypingEffect(
+            controller,
+            textPartId,
+            event.data.textDelta,
+            signal,
+          )
         } else if (event.type === 'phase') {
           controller.enqueue({ type: 'data-phase', data: event.data, transient: true })
         } else if (event.type === 'sources') {
@@ -102,6 +112,49 @@ export class AssistantChatTransport implements ChatTransport<AssistantUIMessage>
       controller.close()
     }
   }
+}
+
+/**
+ * 将服务端文本块进一步拆成适合逐帧绘制的小块。
+ *
+ * Agent 的最终回答必须先经过来源与输出安全校验，因此服务端会在校验完成后
+ * 很快发出多个 text-delta。若前端立即消费，React 会把更新合并成一次绘制，
+ * 看起来就像整段文字突然出现。这里仅平滑展示速度，不伪造 Agent 执行进度。
+ */
+async function enqueueTextWithTypingEffect(
+  controller: ReadableStreamDefaultController<UIMessageChunk>,
+  textPartId: string,
+  text: string,
+  signal?: AbortSignal,
+) {
+  const chunks = splitTextForTyping(text)
+  const animate = shouldAnimateTyping() && chunks.length > 1
+  if (!animate) {
+    controller.enqueue({ type: 'text-delta', id: textPartId, delta: text })
+    return
+  }
+  for (const chunk of chunks) {
+    if (signal?.aborted) throw new DOMException('The operation was aborted', 'AbortError')
+    controller.enqueue({ type: 'text-delta', id: textPartId, delta: chunk })
+    // 每次让出一次浏览器绘制机会，避免 React 合并全部文本更新。
+    // oxlint-disable-next-line no-await-in-loop -- typing chunks must be displayed sequentially.
+    await new Promise<void>((resolve) => window.setTimeout(resolve, TYPING_INTERVAL_MS))
+  }
+}
+
+export function splitTextForTyping(text: string): string[] {
+  const characters = Array.from(text)
+  const chunks: string[] = []
+  for (let start = 0; start < characters.length; start += TYPING_CHUNK_CHARACTERS) {
+    chunks.push(characters.slice(start, start + TYPING_CHUNK_CHARACTERS).join(''))
+  }
+  return chunks
+}
+
+function shouldAnimateTyping(): boolean {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return false
+  if (document.visibilityState === 'hidden') return false
+  return !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 }
 
 export function toUiMessage(message: import('../../service/assistant').AssistantMessage): AssistantUIMessage {
