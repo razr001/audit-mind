@@ -138,9 +138,13 @@ def test_system_agent_stream_executes_core_orchestration() -> None:
             )
         )
 
-    assert [event["type"] for event in events] == [
-        "phase",
-        "phase",
+    assert [event["data"]["phase"] for event in events if event["type"] == "phase"] == [
+        "guarding",
+        "understanding",
+        "agent-running",
+        "validating-result",
+    ]
+    assert [event["type"] for event in events if event["type"] != "phase"] == [
         "text-delta",
         "sources",
         "verified",
@@ -240,7 +244,7 @@ def test_slow_agent_emits_heartbeat_and_is_cancelled_when_stream_closes() -> Non
             assistant_message_id=uuid4(),
             request_id="request-heartbeat",
         )
-        events = [await anext(stream), await anext(stream), await anext(stream)]
+        events = [await anext(stream) for _ in range(4)]
         await stream.aclose()
         return events
 

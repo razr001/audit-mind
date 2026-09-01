@@ -4,9 +4,8 @@ import { CheckOutlined, CopyOutlined, FileSearchOutlined, RobotOutlined } from '
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { AssistantUIMessage } from '../assistant-transport'
-import type { AssistantMessageStatus } from '../../../service/assistant'
+import type { AssistantAnswerPhase, AssistantMessageStatus } from '../../../service/assistant'
 import { getMessageText, getSources } from '../assistant-transport'
-import type { RegulationAnswerPhase } from '../../../service/regulation-queries'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 
@@ -14,11 +13,23 @@ interface ChatMessagesProps {
   messages: AssistantUIMessage[]
   loading: boolean
   busy: boolean
-  phase?: RegulationAnswerPhase
+  phase?: AssistantAnswerPhase
 }
 
-function getPhaseLabels(t: TFunction): Record<RegulationAnswerPhase, string> {
-  return { guarding: t('assistant.phase.guarding'), understanding: t('assistant.phase.understanding'), retrieving: t('assistant.phase.retrieving'), reranking: t('assistant.phase.reranking'), 'screening-context': t('assistant.phase.screeningContext'), generating: t('assistant.phase.generating'), validating: t('assistant.phase.validating'), 'screening-output': t('assistant.phase.screeningOutput') }
+function getPhaseLabels(t: TFunction): Record<AssistantAnswerPhase, string> {
+  return {
+    guarding: t('assistant.phase.guarding'),
+    understanding: t('assistant.phase.understanding'),
+    retrieving: t('assistant.phase.retrieving'),
+    reranking: t('assistant.phase.reranking'),
+    'screening-context': t('assistant.phase.screeningContext'),
+    generating: t('assistant.phase.generating'),
+    validating: t('assistant.phase.validating'),
+    'screening-output': t('assistant.phase.screeningOutput'),
+    'agent-running': t('assistant.phase.agentRunning'),
+    'validating-result': t('assistant.phase.validatingResult'),
+    'executing-approved-action': t('assistant.phase.executingApprovedAction'),
+  }
 }
 
 export function ChatMessages({ messages, loading, busy, phase }: ChatMessagesProps) {
@@ -50,7 +61,8 @@ export function ChatMessages({ messages, loading, busy, phase }: ChatMessagesPro
         {messages.map((message) => <MessageItem key={message.id} message={message} />)}
         {busy && phase && (
           <div className="mt-5 flex items-center gap-3 text-xs text-[var(--muted)]">
-            <span className="assistant-thinking-dot" /><span>{phaseLabels[phase]}</span>
+            <span className="assistant-thinking-dot" />
+            <span>{phaseLabels[phase] ?? t('assistant.generating')}</span>
           </div>
         )}
       </div>

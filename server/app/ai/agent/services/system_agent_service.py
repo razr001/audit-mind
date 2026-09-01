@@ -123,6 +123,7 @@ class SystemAgentService:
             async for event in blocked_events(guardrail_result.reason):
                 yield event
             return
+        yield {"type": "phase", "data": {"phase": "understanding"}}
         fast_answer = await answer_system_agent_fast_path(question, user_id, self.regulation_rule_service)
         if fast_answer is not None:
             async for event in text_events(fast_answer, True, []):
@@ -159,7 +160,6 @@ class SystemAgentService:
             ):
                 yield event
             return
-
         yield {"type": "phase", "data": {"phase": "agent-running"}}
         try:
             # thread_id 是 LangGraph checkpoint 的恢复键。审批后必须用同一个键恢复，
@@ -195,6 +195,7 @@ class SystemAgentService:
                     yield event
                 return
             # 即使模型已经给出答案，仍要做最终输出校验和来源清洗。
+            yield {"type": "phase", "data": {"phase": "validating-result"}}
             final_output, safe_sources = await validate_agent_final(
                 regulation_qa_service=self.regulation_qa_service,
                 question=question,
@@ -308,6 +309,7 @@ class SystemAgentService:
                 decision=decision,
                 tool_receipt=tool_receipt,
             )
+            yield {"type": "phase", "data": {"phase": "validating-result"}}
             final_output, safe_sources = await validate_agent_final(
                 regulation_qa_service=self.regulation_qa_service,
                 question="恢复经过用户决定的系统操作",
@@ -357,14 +359,12 @@ class SystemAgentService:
             finally:
                 await self._delete_checkpoint(agent_run.thread_id)
             raise
-        yield {
-            "type": "final-result",
-            "data": {
-                "answer": final_output.answer,
-                "answered": final_output.answered,
-                "sources": safe_sources,
-            },
+        final_result = {
+            "answer": final_output.answer,
+            "answered": final_output.answered,
+            "sources": safe_sources,
         }
+        yield {"type": "final-result", "data": final_result}
 
     def _build_tools(
         self,

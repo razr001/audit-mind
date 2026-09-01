@@ -1,7 +1,7 @@
 import type { ChatTransport, UIMessage, UIMessageChunk } from 'ai'
-import { streamAssistantMessage } from '../../service/assistant'
+import { streamAssistantMessage, type AssistantAnswerPhase } from '../../service/assistant'
 import { createRequestId } from '../../lib/request-id'
-import type { RegulationAnswerPhase, RegulationAnswerSource } from '../../service/regulation-queries'
+import type { RegulationAnswerSource } from '../../service/regulation-queries'
 import i18n from '../../i18n'
 
 interface AssistantMessageMetadata {
@@ -11,7 +11,7 @@ interface AssistantMessageMetadata {
 
 type AssistantMessageData = {
   conversation: { conversationId: string; title: string }
-  phase: { phase: RegulationAnswerPhase }
+  phase: { phase: AssistantAnswerPhase }
   sources: { sources: RegulationAnswerSource[] }
 }
 

@@ -112,4 +112,35 @@ describe('AssistantChatTransport', () => {
     })
     expect(chunks).toContainEqual({ type: 'error', errorText: '回答失败' })
   })
+
+  it('forwards system agent progress phases to the chat UI', async () => {
+    streamAssistantMessage.mockImplementation(async function* () {
+      yield {
+        type: 'message-start',
+        data: {
+          conversationId: 'conversation-4',
+          userMessageId: 'user-4',
+          assistantMessageId: 'assistant-4',
+          title: '查询购物类规则',
+        },
+      }
+      yield { type: 'phase', data: { phase: 'agent-running' } }
+      yield { type: 'phase', data: { phase: 'validating-result' } }
+      yield { type: 'done', data: {} }
+    })
+    const transport = new AssistantChatTransport()
+
+    const chunks = await readAll(await transport.sendMessages(streamOptions()))
+
+    expect(chunks).toContainEqual({
+      type: 'data-phase',
+      data: { phase: 'agent-running' },
+      transient: true,
+    })
+    expect(chunks).toContainEqual({
+      type: 'data-phase',
+      data: { phase: 'validating-result' },
+      transient: true,
+    })
+  })
 })

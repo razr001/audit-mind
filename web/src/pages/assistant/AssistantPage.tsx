@@ -13,7 +13,7 @@ import {
   getAssistantMessages,
   renameAssistantConversation,
 } from '../../service/assistant'
-import type { RegulationAnswerPhase } from '../../service/regulation-queries'
+import type { AssistantAnswerPhase } from '../../service/assistant'
 import { AssistantChatTransport, toUiMessage, type AssistantUIMessage } from './assistant-transport'
 import { ChatComposer } from './components/ChatComposer'
 import { ChatMessages } from './components/ChatMessages'
@@ -27,7 +27,7 @@ export function AssistantPage() {
   const [transport] = useState(() => new AssistantChatTransport())
   const queryClient = useQueryClient()
   const { message } = App.useApp()
-  const [phase, setPhase] = useState<RegulationAnswerPhase>()
+  const [phase, setPhase] = useState<AssistantAnswerPhase>()
   const [historyOpen, setHistoryOpen] = useState(false)
   const [historyLoading, setHistoryLoading] = useState(false)
   const historyRequestRef = useRef(0)

@@ -8,6 +8,11 @@ import i18n from '../i18n'
 
 type AssistantMessageRole = 'USER' | 'ASSISTANT'
 export type AssistantMessageStatus = 'GENERATING' | 'COMPLETED' | 'FAILED' | 'CANCELED'
+export type AssistantAnswerPhase =
+  | RegulationAnswerPhase
+  | 'agent-running'
+  | 'validating-result'
+  | 'executing-approved-action'
 
 export interface AssistantConversation {
   id: UUID
@@ -30,7 +35,7 @@ export interface AssistantMessage {
 
 export type AssistantStreamEvent =
   | { type: 'message-start'; data: { conversationId: UUID; userMessageId: UUID; assistantMessageId: UUID; title: string } }
-  | { type: 'phase'; data: { phase: RegulationAnswerPhase } }
+  | { type: 'phase'; data: { phase: AssistantAnswerPhase } }
   | { type: 'text-delta'; data: { textDelta: string } }
   | { type: 'sources'; data: { sources: RegulationAnswerSource[] } }
   | { type: 'verified'; data: { answered: boolean } }
