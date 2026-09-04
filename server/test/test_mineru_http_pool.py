@@ -28,6 +28,7 @@ class FakeRequestContext:
 class FakeSession:
     def __init__(self) -> None:
         self.requests: list[tuple[str, str, object]] = []
+        self.posted_data = None
 
     def get(self, url: str, *, timeout):
         self.requests.append(("GET", url, timeout))
@@ -35,6 +36,7 @@ class FakeSession:
 
     def post(self, url: str, *, data, timeout):
         self.requests.append(("POST", url, timeout))
+        self.posted_data = data
         return FakeRequestContext(FakeResponse({"task_id": "task-upload"}))
 
 
@@ -104,6 +106,35 @@ def test_mineru_upload_and_result_requests_use_stream_timeout():
     assert http_client.session.requests[0][2] is client.stream_timeout
     assert http_client.session.requests[1][0] == "GET"
     assert http_client.session.requests[1][2] is client.stream_timeout
+
+
+def test_pipeline_upload_omits_irrelevant_server_url():
+    http_client = FakeHttpClient()
+    client = MinerUClient(http_client=http_client)
+
+    async def content():
+        yield b"%PDF-test"
+
+    asyncio.run(
+        client.create_task(
+            filename="test.pdf",
+            content=content(),
+            content_type="application/pdf",
+            content_length=9,
+            backend="pipeline",
+            server_url="http://host.docker.internal:30000",
+            effort="medium",
+            parse_method="auto",
+            formula_enable=True,
+            table_enable=True,
+            image_analysis=False,
+        )
+    )
+
+    field_names = {
+        field[0]["name"] for field in http_client.session.posted_data._fields
+    }
+    assert "server_url" not in field_names
 
 
 def test_mineru_5xx_response_is_classified_as_transient():

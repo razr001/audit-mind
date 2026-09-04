@@ -18,56 +18,6 @@ volumes:
 name: auditmind-server
 services:
 
-  # The NVIDIA inference service is intentionally isolated in
-  # docker-compose.nvidia.yml. This API connects to the server_url supplied by
-  # AuditMind, which may point to localhost or a separate private GPU host.
-  mineru-api:
-    build:
-      context: ./docker/mineru
-      dockerfile: Dockerfile
-      args:
-        MINERU_MODEL_DOWNLOAD_SOURCE: ${MINERU_MODEL_DOWNLOAD_SOURCE:-huggingface}
-    image: auditmind-mineru:3.4.2
-    container_name: mineru-api
-    restart: unless-stopped
-    entrypoint: mineru-api
-    command:
-      - --host
-      - 0.0.0.0
-      - --port
-      - "8000"
-      # Required for hybrid-http-client. The API itself remains accessible
-      # only from this host; the model address comes from application config.
-      - --allow-public-http-client
-    environment:
-      MINERU_MODEL_SOURCE: local
-      MINERU_API_ENABLE_FASTAPI_DOCS: "0"
-      MINERU_API_MAX_CONCURRENT_REQUESTS: ${MINERU_API_MAX_CONCURRENT_REQUESTS:-2}
-      MINERU_API_TASK_RETENTION_SECONDS: ${MINERU_API_TASK_RETENTION_SECONDS:-86400}
-      MINERU_API_TASK_CLEANUP_INTERVAL_SECONDS: ${MINERU_API_TASK_CLEANUP_INTERVAL_SECONDS:-300}
-      # Parallel PDF rendering has caused nondeterministic output in some
-      # environments; one render worker favors correctness over throughput.
-      MINERU_PDF_RENDER_THREADS: ${MINERU_PDF_RENDER_THREADS:-1}
-    ports:
-      - "127.0.0.1:8000:8000"
-    # Makes the same local address work on Docker Desktop and Linux Docker.
-    # Production simply replaces it with the GPU machine's private IP.
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 20
-      start_period: 30s
-    stop_grace_period: 20s
-    logging:
-      driver: json-file
-      options:
-        max-size: "20m"
-        max-file: "5"
-
-
   elasticsearch:
     build:
       context: ./docker/elasticsearch
@@ -156,14 +106,14 @@ services:
       environment:
         POSTGRES_USER: hyperweave
         POSTGRES_PASSWORD: hyperweave123
-        POSTGRES_DB: hyperweave
+        POSTGRES_DB: audit_mind
       ports:
         - "127.0.0.1:5432:5432"
       volumes:
         # PostgreSQL 18+ 的官方镜像建议挂载父目录，以兼容版本化数据目录。
         - postgres_data:/var/lib/postgresql
       healthcheck:
-        test: ["CMD-SHELL", "pg_isready -U hyperweave -d hyperweave"]
+        test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
         interval: 10s
         timeout: 5s
         retries: 10

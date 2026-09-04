@@ -78,7 +78,9 @@ class FakeRefreshTokenStore:
             del self.tokens[session_id]
 
 
-def auth_settings() -> SimpleNamespace:
+def auth_settings(
+    refresh_cookie_path: str = "/api/auth",
+) -> SimpleNamespace:
     return SimpleNamespace(
         JWT_SECRET_KEY=SecretStr("test-secret-that-is-not-used-in-production"),
         JWT_ALGORITHM="HS256",
@@ -87,6 +89,7 @@ def auth_settings() -> SimpleNamespace:
         JWT_EXPIRATION_DELTA=30,
         JWT_REFRESH_EXPIRATION_DAYS=7,
         AUTH_REFRESH_COOKIE_NAME="auditmind-refresh-token",
+        AUTH_REFRESH_COOKIE_PATH=refresh_cookie_path,
         AUTH_COOKIE_SECURE=False,
         AUTH_COOKIE_SAMESITE="lax",
     )
@@ -129,8 +132,9 @@ def test_login_and_refresh_rotate_refresh_token(
     asyncio.run(scenario())
 
 
-def test_login_sets_http_only_refresh_cookie() -> None:
-    settings = auth_settings()
+@pytest.mark.parametrize("cookie_path", ["/api/auth", "/auth"])
+def test_login_sets_http_only_refresh_cookie(cookie_path: str) -> None:
+    settings = auth_settings(cookie_path)
     app = create_app(
         settings=SimpleNamespace(
             APP_NAME="AuditMind Test",
@@ -159,4 +163,4 @@ def test_login_sets_http_only_refresh_cookie() -> None:
     cookie = response.headers["set-cookie"]
     assert "auditmind-refresh-token=refresh" in cookie
     assert "HttpOnly" in cookie
-    assert "Path=/" in cookie
+    assert f"Path={cookie_path}" in cookie

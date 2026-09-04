@@ -2,13 +2,13 @@ import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 
 const commonZh = {
-  cancel: '取消', retry: '重试', refresh: '刷新', reload: '重新加载', delete: '删除', details: '详情', previous: '上一页', next: '下一页',
+  cancel: '取消', retry: '重试', refresh: '刷新', reload: '重新加载', loading: '页面加载中', delete: '删除', details: '详情', previous: '上一页', next: '下一页',
   page: '页', section: '段', item: '项', findings: '个问题', notProvided: '未填写', notSet: '未设置', currentUser: '当前用户',
   authenticatedUser: '已认证用户', logout: '退出登录', loggedOut: '已退出登录', settings: '设置', expandMenu: '展开菜单',
   collapseMenu: '收起菜单', primaryNavigation: '主导航', shared: '共享知识', private: '私有知识',
 }
 const commonEn = {
-  cancel: 'Cancel', retry: 'Retry', refresh: 'Refresh', reload: 'Reload', delete: 'Delete', details: 'Details', previous: 'Previous', next: 'Next',
+  cancel: 'Cancel', retry: 'Retry', refresh: 'Refresh', reload: 'Reload', loading: 'Loading page', delete: 'Delete', details: 'Details', previous: 'Previous', next: 'Next',
   page: 'page', section: 'section', item: 'items', findings: 'findings', notProvided: 'Not provided', notSet: 'Not set', currentUser: 'Current user',
   authenticatedUser: 'Authenticated user', logout: 'Sign out', loggedOut: 'Signed out', settings: 'Settings', expandMenu: 'Expand menu',
   collapseMenu: 'Collapse menu', primaryNavigation: 'Primary navigation', shared: 'Shared knowledge', private: 'Private knowledge',

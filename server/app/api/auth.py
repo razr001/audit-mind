@@ -19,7 +19,6 @@ router = APIRouter(
     tags=["auth"],
 )
 
-
 def get_auth_service(
     session: AsyncSession = Depends(get_db),
     uow: UnitOfWork = Depends(get_uow),
@@ -45,9 +44,7 @@ def set_refresh_cookie(
         httponly=True,
         secure=settings.AUTH_COOKIE_SECURE,
         samesite=settings.AUTH_COOKIE_SAMESITE,
-        # 前端通常经 /api 反向代理访问，根路径可避免浏览器按代理路径
-        # 丢弃 refresh Cookie；HttpOnly 仍阻止 JavaScript 读取。
-        path="/",
+        path=settings.AUTH_REFRESH_COOKIE_PATH,
     )
 
 
@@ -89,7 +86,7 @@ async def logout(
     await service.logout(refresh_token)
     response.delete_cookie(
         settings.AUTH_REFRESH_COOKIE_NAME,
-        path="/",
+        path=settings.AUTH_REFRESH_COOKIE_PATH,
         secure=settings.AUTH_COOKIE_SECURE,
         httponly=True,
         samesite=settings.AUTH_COOKIE_SAMESITE,

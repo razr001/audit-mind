@@ -81,7 +81,7 @@ Worker 必须和 FastAPI 读取同一份 `.env`，尤其要确认 `REDIS_URL` �
 
 ### 3.1 环境要求
 
-- Python 3.12 或更高版本
+- Python 3.12（仓库通过 `.python-version` 固定，uv 会在 Windows 和 macOS 使用同一版本）
 - [uv](https://docs.astral.sh/uv/)
 - Docker 和 Docker Compose
 - Node.js/npm（需要运行 `../web` 前端时）
@@ -115,14 +115,14 @@ cp docker/grafana/.env.example docker/grafana/.env
 
 ```dotenv
 ENVIRONMENT=local
-DATABASE_URL=postgresql+asyncpg://hyperweave:hyperweave123@localhost:5432/hyperweave
+DATABASE_URL=postgresql+asyncpg://hyperweave:hyperweave123@127.0.0.1:5432/audit_mind
 REDIS_URL=redis://default:redis123@127.0.0.1:6379/0
-MINIO_ENDPOINT=localhost:9000
+MINIO_ENDPOINT=127.0.0.1:9000
 MINIO_ACCESS_KEY=minioadmin
 MINIO_SECRET_KEY=minioadmin123
 MINIO_BUCKET=auditmind-documents
 MINIO_SECURE=false
-ELASTICSEARCH_URL=http://localhost:9200
+ELASTICSEARCH_URL=http://127.0.0.1:9200
 ```
 
 这些只是仓库当前的本地开发默认值，不能用于生产。
@@ -178,7 +178,7 @@ docker compose ps
 
 #### 方式 A：无 GPU 的 CPU 模式
 
-不要同时启动基础 Compose 中的 `mineru-api`，两者默认都会占用宿主机 `8000` 端口。
+不要同时启动 `docker-mineru-api.yml` 中的 `mineru-api`，两者默认都会占用宿主机 `8000` 端口。
 
 ```powershell
 docker compose -f docker-compose.cpu.yml up -d --build
@@ -219,7 +219,7 @@ docker compose -f docker-compose.nvidia.yml up -d --build
 在应用主机启动 MinerU API：
 
 ```powershell
-docker compose up -d --build mineru-api
+docker compose -f docker-mineru-api.yml up -d --build
 ```
 
 同机开发设置：
@@ -282,6 +282,10 @@ uv run auditmind-api --host 127.0.0.1 --port 8181 --reload
 `SelectorEventLoop`，避免 Agent PostgreSQL checkpointer 与默认事件循环不兼容；
 直接执行 `uvicorn app.main:app` 会绕过这项兼容处理。
 
+PyCharm 在 Windows 和 macOS 使用相同配置：将 `server/` 作为项目目录，
+Working directory 设为 `$PROJECT_DIR$`，Script path 设为
+`$PROJECT_DIR$/app/server.py`。
+
 终端二：
 
 ```powershell
@@ -311,7 +315,8 @@ npm run dev
 
 ## 4. 必需配置说明
 
-以 `.env.example` 为完整模板，以下配置是上线前必须确认的核心项：
+`.env.example` 只保留本地启动必需或必须明确选择的配置。其他可选项及
+默认值以 `app/core/config.py` 为准；以下是上线前必须确认的核心配置：
 
 | 配置 | 关键变量 | 注意事项 |
 |---|---|---|
@@ -322,7 +327,7 @@ npm run dev
 | Elasticsearch | `ELASTICSEARCH_URL`、`ELASTICSEARCH_API_KEY` | 业务使用最小权限 API Key，不使用管理员账号 |
 | 索引 | `ELASTICSEARCH_REGULATION_CHUNK_INDEX`、`ELASTICSEARCH_REGULATION_RULE_INDEX` | 使用显式版本名；API 与 Worker 配置必须一致 |
 | JWT | `JWT_SECRET_KEY`、`JWT_ISSUER`、`JWT_AUDIENCE` | Secret 至少 32 字符且必须随机 |
-| Refresh Cookie | `JWT_REFRESH_EXPIRATION_DAYS`、`AUTH_COOKIE_SECURE`、`AUTH_COOKIE_SAMESITE` | HTTPS 生产必须设置 `AUTH_COOKIE_SECURE=true` |
+| Refresh Cookie | `JWT_REFRESH_EXPIRATION_DAYS`、`AUTH_REFRESH_COOKIE_PATH`、`AUTH_COOKIE_SECURE`、`AUTH_COOKIE_SAMESITE` | HTTPS 生产必须设置 `AUTH_COOKIE_SECURE=true` |
 | 主模型 | `AI_BASE_URL`、`AI_API_KEY`、`AI_MODEL` | 要求 OpenAI 兼容接口 |
 | Embedding | `AI_EMBEDDING_*` | 完整业务必需，维度必须匹配 |
 | MinerU | `MINERU_PROVIDER`、`MINERU_BASE_URL`、`MINERU_CLOUD_API_TOKEN` | 本地 CPU/GPU 与云端模式配置不同 |
@@ -336,7 +341,11 @@ npm run dev
 ```dotenv
 CORS_ALLOWED_ORIGINS=["http://localhost:5173"]
 AUTH_COOKIE_SECURE=false
+AUTH_REFRESH_COOKIE_PATH=/api/auth
 ```
+
+前端通过 `VITE_API_BASE_URL=http://localhost:8181` 直连 FastAPI、没有
+`/api` 代理前缀时，将 `AUTH_REFRESH_COOKIE_PATH` 改为 `/auth`。
 
 生产前后端同源部署通常使用：
 
@@ -344,6 +353,7 @@ AUTH_COOKIE_SECURE=false
 ENVIRONMENT=production
 CORS_ALLOWED_ORIGINS=[]
 AUTH_COOKIE_SECURE=true
+AUTH_REFRESH_COOKIE_PATH=/api/auth
 ```
 
 ## 5. 生产部署

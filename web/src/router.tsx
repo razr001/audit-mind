@@ -1,4 +1,5 @@
 import { createRootRoute, createRoute, createRouter, lazyRouteComponent, Outlet, redirect } from '@tanstack/react-router'
+import { RouteLoading } from './components/RouteLoading'
 import { getAccessToken } from './lib/auth-token'
 
 const LoginPage = lazyRouteComponent(() => import('./pages/LoginPage'), 'LoginPage')
@@ -89,7 +90,12 @@ const routeTree = rootRoute.addChildren([
   authenticatedRoute.addChildren([indexRoute, regulationRoute, regulationDetailRoute, assistantRoute, auditListRoute, auditCreateRoute, auditDetailRoute, usersRoute]),
 ])
 
-export const router = createRouter({ routeTree })
+export const router = createRouter({
+  routeTree,
+  defaultPendingComponent: RouteLoading,
+  defaultPendingMs: 150,
+  defaultPendingMinMs: 300,
+})
 
 declare module '@tanstack/react-router' {
   interface Register {

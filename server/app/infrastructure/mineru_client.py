@@ -111,7 +111,7 @@ class MinerUClient:
         # 显式传递解析策略，避免 MinerU 服务端默认值升级后改变解析效果。
         form.add_field("backend", backend)
         # http-client 后端由轻量 API 容器转发到独立的 GPU 模型服务。
-        if server_url:
+        if backend.endswith("-http-client") and server_url:
             form.add_field("server_url", server_url)
         form.add_field("effort", effort)
         form.add_field("parse_method", parse_method)

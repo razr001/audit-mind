@@ -28,6 +28,7 @@ def make_app(
     application.dependency_overrides[get_settings] = lambda: SimpleNamespace(
         ENVIRONMENT=environment,
         AUTH_REFRESH_COOKIE_NAME="auditmind-refresh-token",
+        AUTH_REFRESH_COOKIE_PATH="/api/auth",
         AUTH_COOKIE_SECURE=False,
         AUTH_COOKIE_SAMESITE="lax",
     )

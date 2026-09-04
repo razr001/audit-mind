@@ -193,6 +193,13 @@ class Settings(MinerUCloudSettings):
         max_length=64,
         pattern=r"^[A-Za-z0-9_-]+$",
     )
+    # 浏览器可见的 API 路径。直连 FastAPI、没有 /api 反向代理时改为 /auth。
+    AUTH_REFRESH_COOKIE_PATH: str = Field(
+        default="/api/auth",
+        min_length=1,
+        max_length=256,
+        pattern=r"^/[^\s;]*$",
+    )
     AUTH_COOKIE_SECURE: bool = True
     AUTH_COOKIE_SAMESITE: Literal["lax", "strict", "none"] = "lax"
 

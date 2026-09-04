@@ -18,7 +18,7 @@ services:
     platform: ${MINERU_CPU_PLATFORM:-linux/amd64}
     build:
       context: ./docker/mineru
-      dockerfile: Dockerfile.cpu
+      dockerfile: Dockerfile
       args:
         MINERU_MODEL_DOWNLOAD_SOURCE: ${MINERU_MODEL_DOWNLOAD_SOURCE:-huggingface}
     image: auditmind-mineru-cpu:3.4.2
