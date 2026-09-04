@@ -104,9 +104,9 @@ services:
       image: postgres:18
       container_name: postgresql-18
       environment:
-        POSTGRES_USER: hyperweave
-        POSTGRES_PASSWORD: hyperweave123
-        POSTGRES_DB: audit_mind
+        POSTGRES_USER: ${POSTGRES_USER:-hyperweave}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hyperweave123}
+        POSTGRES_DB: ${POSTGRES_DB:-audit_mind}
       ports:
         - "127.0.0.1:5432:5432"
       volumes:
@@ -124,7 +124,7 @@ services:
     image: redis:8
     container_name: redis-8
     environment:
-      REDIS_PASSWORD: redis123
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis123}
     command:
       - /bin/sh
       - -c
@@ -146,10 +146,10 @@ services:
     container_name: minio
     environment:
       # 保留用户指定的变量名，并同时设置当前 MinIO 使用的变量名。
-      MINIO_ACCESS_KEY: minioadmin
-      MINIO_SECRET_KEY: minioadmin123
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin123
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin123}
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin123}
     command: server /data --console-address ":9001"
     ports:
       - "127.0.0.1:9000:9000"

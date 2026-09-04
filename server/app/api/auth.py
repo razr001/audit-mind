@@ -19,6 +19,7 @@ router = APIRouter(
     tags=["auth"],
 )
 
+
 def get_auth_service(
     session: AsyncSession = Depends(get_db),
     uow: UnitOfWork = Depends(get_uow),

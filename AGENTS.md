@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-The application lives in `server/` and targets Python 3.12. FastAPI endpoints are organized in `server/app/api/`; business workflows belong in `services/`, persistence queries in `repositories/`, SQLAlchemy entities in `models/`, and request/response models in `schemas/`. Shared configuration, logging, and exceptions live in `core/`. External systems are isolated under `infrastructure/`, including database session management, Redis, MinIO, and Elasticsearch clients. AI-related code is grouped by concern in `app/ai/`. Alembic migrations are stored in `server/migrations/versions/`. `server/test_main.http` contains manual API requests; there is currently no automated test suite or separate asset directory.
+The application lives in `server/` and targets Python 3.12. FastAPI endpoints are organized in `server/app/api/`; business workflows belong in `services/`, persistence queries in `repositories/`, SQLAlchemy entities in `models/`, and request/response models in `schemas/`. Shared configuration, logging, and exceptions live in `core/`. External systems are isolated under `infrastructure/`, including database session management, Redis, MinIO, and Elasticsearch clients. AI-related code is grouped by concern in `app/ai/`. Alembic migrations are stored in `server/migrations/versions/`. Automated tests and HTTP request examples live in `server/test/`.
 
 ## Build, Test, and Development Commands
 
@@ -22,7 +22,7 @@ Use four-space indentation, type hints, and asynchronous APIs for database and n
 
 ## Testing Guidelines
 
-Use `test_main.http` for quick endpoint checks. New behavior should include automated tests under `server/tests/`, named `test_<feature>.py`, using pytest conventions. Mock external services where practical, and add any new test dependency to `pyproject.toml`. Run the future suite with `uv run pytest`.
+Use the `.http` files under `test/` for quick endpoint checks. New behavior should include automated tests under `server/test/`, named `test_<feature>.py`, using pytest conventions. Mock external services where practical, and add any new test dependency to `pyproject.toml`. Run the suite with `uv run pytest`.
 
 ## Commit & Pull Request Guidelines
 

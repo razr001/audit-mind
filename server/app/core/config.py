@@ -183,22 +183,15 @@ class Settings(MinerUCloudSettings):
     JWT_ISSUER: str = "audit-mind"
     JWT_AUDIENCE: str = "audit-mind-api"
 
-    # default 30 minutes
     JWT_EXPIRATION_DELTA: int = 30
     # Refresh token 使用 HttpOnly Cookie，Redis 只保存轮换后的摘要。
     JWT_REFRESH_EXPIRATION_DAYS: int = Field(default=7, ge=1, le=90)
     AUTH_REFRESH_COOKIE_NAME: str = Field(
-        default="auditmind-refresh-token",
-        min_length=1,
-        max_length=64,
+        default="auditmind-refresh-token", min_length=1, max_length=64,
         pattern=r"^[A-Za-z0-9_-]+$",
     )
-    # 浏览器可见的 API 路径。直连 FastAPI、没有 /api 反向代理时改为 /auth。
     AUTH_REFRESH_COOKIE_PATH: str = Field(
-        default="/api/auth",
-        min_length=1,
-        max_length=256,
-        pattern=r"^/[^\s;]*$",
+        default="/api/auth", min_length=1, max_length=256, pattern=r"^/[^\s;]*$"
     )
     AUTH_COOKIE_SECURE: bool = True
     AUTH_COOKIE_SAMESITE: Literal["lax", "strict", "none"] = "lax"
@@ -396,7 +389,7 @@ class Settings(MinerUCloudSettings):
             )
         return self
 
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
 
 
 @lru_cache

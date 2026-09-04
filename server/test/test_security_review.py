@@ -38,6 +38,14 @@ def settings_values(**overrides: object) -> dict[str, object]:
     return values
 
 
+def test_settings_ignore_compose_only_environment_values() -> None:
+    settings = Settings(
+        _env_file=None,
+        **settings_values(POSTGRES_USER="local-user", REDIS_PASSWORD="local-password"),
+    )
+    assert settings.DATABASE_URL.endswith("/test")
+
+
 def test_jwt_configuration_rejects_weak_secrets_and_unknown_algorithms() -> None:
     with pytest.raises(ValidationError):
         Settings(_env_file=None, **settings_values(JWT_SECRET_KEY="short"))

@@ -1,7 +1,12 @@
 import asyncio
+from collections.abc import AsyncIterator
+from typing import cast
 
+import aiohttp
 import pytest
+from aiohttp import FormData
 
+from app.infrastructure.http_client import AsyncHttpClient
 from app.infrastructure.mineru_client import MinerUClient, MinerUTransientError
 
 
@@ -28,7 +33,7 @@ class FakeRequestContext:
 class FakeSession:
     def __init__(self) -> None:
         self.requests: list[tuple[str, str, object]] = []
-        self.posted_data = None
+        self.posted_data: FormData | None = None
 
     def get(self, url: str, *, timeout):
         self.requests.append(("GET", url, timeout))
@@ -53,7 +58,7 @@ class FakeHttpClient:
 def test_mineru_reuses_application_http_session_and_uses_status_timeout():
     """连续轮询必须复用连接池，并使用有界的短状态查询超时。"""
     http_client = FakeHttpClient()
-    client = MinerUClient(http_client=http_client)
+    client = MinerUClient(http_client=cast(AsyncHttpClient, http_client))
 
     async def run_test() -> None:
         await client.get_task("task-1")
@@ -69,18 +74,18 @@ def test_mineru_reuses_application_http_session_and_uses_status_timeout():
 
 def test_mineru_stream_timeout_does_not_limit_total_transfer_duration():
     """大文件上传和结果下载只限制连接及空闲读取，不限制传输总时长。"""
-    client = MinerUClient(http_client=FakeHttpClient())
+    client = MinerUClient(http_client=cast(AsyncHttpClient, FakeHttpClient()))
 
     assert client.stream_timeout.total is None
     assert client.stream_timeout.connect is not None
     assert client.stream_timeout.sock_read is not None
 
 
-def test_mineru_upload_and_result_requests_use_stream_timeout():
+def test_mineru_upload_and_result_requests_use_stream_timeout() -> None:
     http_client = FakeHttpClient()
-    client = MinerUClient(http_client=http_client)
+    client = MinerUClient(http_client=cast(AsyncHttpClient, http_client))
 
-    async def content():
+    async def content() -> AsyncIterator[bytes]:
         yield b"%PDF-test"
 
     async def run_test() -> None:
@@ -108,11 +113,11 @@ def test_mineru_upload_and_result_requests_use_stream_timeout():
     assert http_client.session.requests[1][2] is client.stream_timeout
 
 
-def test_pipeline_upload_omits_irrelevant_server_url():
+def test_pipeline_upload_omits_irrelevant_server_url() -> None:
     http_client = FakeHttpClient()
-    client = MinerUClient(http_client=http_client)
+    client = MinerUClient(http_client=cast(AsyncHttpClient, http_client))
 
-    async def content():
+    async def content() -> AsyncIterator[bytes]:
         yield b"%PDF-test"
 
     asyncio.run(
@@ -131,9 +136,8 @@ def test_pipeline_upload_omits_irrelevant_server_url():
         )
     )
 
-    field_names = {
-        field[0]["name"] for field in http_client.session.posted_data._fields
-    }
+    assert http_client.session.posted_data is not None
+    field_names = {field[0]["name"] for field in http_client.session.posted_data._fields}
     assert "server_url" not in field_names
 
 
@@ -141,7 +145,10 @@ def test_mineru_5xx_response_is_classified_as_transient():
     async def run_test() -> None:
         with pytest.raises(MinerUTransientError):
             await MinerUClient._read_response(
-                FakeResponse({"message": "bad gateway"}, status=502)
+                cast(
+                    aiohttp.ClientResponse,
+                    FakeResponse({"message": "bad gateway"}, status=502),
+                )
             )
 
     asyncio.run(run_test())

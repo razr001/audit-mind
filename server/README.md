@@ -111,21 +111,9 @@ cp docker/grafana/.env.example docker/grafana/.env
 
 随后修改所有占位值。真实 `.env` 和 `docker/*/.env` 都不能提交到 Git。
 
-使用当前 Compose 的开发默认账号时，业务 `.env` 至少要对应为：
-
-```dotenv
-ENVIRONMENT=local
-DATABASE_URL=postgresql+asyncpg://hyperweave:hyperweave123@127.0.0.1:5432/audit_mind
-REDIS_URL=redis://default:redis123@127.0.0.1:6379/0
-MINIO_ENDPOINT=127.0.0.1:9000
-MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=minioadmin123
-MINIO_BUCKET=auditmind-documents
-MINIO_SECURE=false
-ELASTICSEARCH_URL=http://127.0.0.1:9200
-```
-
-这些只是仓库当前的本地开发默认值，不能用于生产。
+`.env.example` 是本地连接配置的唯一示例；Compose 的 PostgreSQL、Redis
+和 MinIO 初始化值均可通过同名环境变量覆盖。修改这些容器凭据时，也要
+同步更新应用使用的 `DATABASE_URL` 或 `REDIS_URL`。示例值不能用于生产。
 
 生成 JWT 或内部调度 Token 时应使用随机值，例如：
 
