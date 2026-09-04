@@ -6,7 +6,41 @@ from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Settings(BaseSettings):
+class MinerUCloudSettings(BaseSettings):
+    MINERU_PROVIDER: Literal["local", "cloud"] = "local"
+    MINERU_CLOUD_API_BASE_URL: str = "https://mineru.net"
+    MINERU_CLOUD_API_TOKEN: SecretStr = SecretStr("")
+    MINERU_CLOUD_MODEL_VERSION: Literal["pipeline", "vlm"] = "vlm"
+    MINERU_CLOUD_LANGUAGE: str = "ch"
+
+    @field_validator("MINERU_CLOUD_API_BASE_URL")
+    @classmethod
+    def validate_mineru_cloud_api_base_url(cls, value: str) -> str:
+        origin = value.strip().rstrip("/")
+        parsed = urlsplit(origin)
+        if (
+            parsed.scheme != "https"
+            or not parsed.netloc
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.path
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise ValueError("MinerU cloud API base URL must be an HTTPS origin")
+        return origin
+
+    @model_validator(mode="after")
+    def validate_mineru_configuration(self) -> "MinerUCloudSettings":
+        if (
+            self.MINERU_PROVIDER == "cloud"
+            and not self.MINERU_CLOUD_API_TOKEN.get_secret_value().strip()
+        ):
+            raise ValueError("MINERU_CLOUD_API_TOKEN is required for cloud MinerU")
+        return self
+
+
+class Settings(MinerUCloudSettings):
     """从环境变量和本地 .env 加载应用配置；敏感值使用 SecretStr。"""
 
     APP_NAME: str = "AuditMind AI"

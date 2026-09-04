@@ -194,6 +194,20 @@ MINERU_SERVER_URL=
 
 CPU 模式适合开发验证，解析大 PDF 会明显较慢。
 
+#### 方式 C：MinerU 云端精准解析 API
+
+无需启动 MinerU Docker 服务，在 `.env` 中配置：
+
+```dotenv
+MINERU_PROVIDER=cloud
+MINERU_CLOUD_API_TOKEN=在 https://mineru.net/apiManage 创建的 Token
+MINERU_CLOUD_MODEL_VERSION=vlm
+MINERU_CLOUD_LANGUAGE=ch
+```
+
+云端模式使用预签名 URL 流式上传 MinIO 中的原文件，并轮询精准解析 API；
+`MINERU_BASE_URL`、`MINERU_BACKEND` 和 `MINERU_SERVER_URL` 仅用于本地模式。
+
 #### 方式 B：NVIDIA GPU / 混合模式
 
 在 GPU 主机启动推理服务：
@@ -311,7 +325,7 @@ npm run dev
 | Refresh Cookie | `JWT_REFRESH_EXPIRATION_DAYS`、`AUTH_COOKIE_SECURE`、`AUTH_COOKIE_SAMESITE` | HTTPS 生产必须设置 `AUTH_COOKIE_SECURE=true` |
 | 主模型 | `AI_BASE_URL`、`AI_API_KEY`、`AI_MODEL` | 要求 OpenAI 兼容接口 |
 | Embedding | `AI_EMBEDDING_*` | 完整业务必需，维度必须匹配 |
-| MinerU | `MINERU_BASE_URL`、`MINERU_BACKEND`、`MINERU_SERVER_URL` | CPU 与 GPU 模式配置不同 |
+| MinerU | `MINERU_PROVIDER`、`MINERU_BASE_URL`、`MINERU_CLOUD_API_TOKEN` | 本地 CPU/GPU 与云端模式配置不同 |
 | 请求上限 | `REQUEST_BODY_MAX_BYTES`、`DOCUMENT_MAX_FILE_SIZE`、`REGULATION_MAX_FILE_SIZE` | 普通请求默认 10 MiB，PDF 默认 100 MiB |
 | 长任务 | `DRAMATIQ_*_TIME_LIMIT_SECONDS`、`*_PIPELINE_WAIT_TIMEOUT_SECONDS` | Dramatiq 时限至少比对应等待时限多 300 秒 |
 | 日志 | `LOG_FILE_PATH` | 本地默认写 JSONL；容器采集 stdout 时可留空，避免重复日志 |

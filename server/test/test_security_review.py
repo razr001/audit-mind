@@ -94,6 +94,33 @@ def test_optional_rerank_configuration_requires_explicit_provider_selection() ->
         )
 
 
+def test_cloud_mineru_requires_token_and_https_origin() -> None:
+    with pytest.raises(ValidationError, match="MINERU_CLOUD_API_TOKEN"):
+        Settings(
+            _env_file=None,
+            **settings_values(MINERU_PROVIDER="cloud"),
+        )
+
+    cloud = Settings(
+        _env_file=None,
+        **settings_values(
+            MINERU_PROVIDER="cloud",
+            MINERU_CLOUD_API_TOKEN="test-token",
+        ),
+    )
+    assert cloud.MINERU_CLOUD_API_BASE_URL == "https://mineru.net"
+
+    with pytest.raises(ValidationError, match="HTTPS origin"):
+        Settings(
+            _env_file=None,
+            **settings_values(
+                MINERU_PROVIDER="cloud",
+                MINERU_CLOUD_API_TOKEN="test-token",
+                MINERU_CLOUD_API_BASE_URL="http://mineru.net/api",
+            ),
+        )
+
+
 def test_cors_configuration_allows_internal_http_and_rejects_unsafe_origins() -> None:
     local = Settings(
         _env_file=None,

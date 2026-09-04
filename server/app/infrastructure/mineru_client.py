@@ -6,6 +6,11 @@ import aiohttp
 
 from app.core.config import get_settings
 from app.infrastructure.http_client import AsyncHttpClient, outbound_http_client
+from app.infrastructure.mineru_cloud_client import (
+    MinerUCloudClient,
+    MinerUTransientError,
+    mineru_http_error_type,
+)
 
 
 class SizedAsyncIterablePayload(aiohttp.payload.AsyncIterablePayload):
@@ -28,10 +33,6 @@ class SizedAsyncIterablePayload(aiohttp.payload.AsyncIterablePayload):
 settings = get_settings()
 
 
-class MinerUTransientError(RuntimeError):
-    """MinerU 暂时不可用，调用方应保留任务状态并稍后重试。"""
-
-
 class MinerUClient:
     """封装 MinerU 的任务创建、状态查询和结果获取接口。"""
 
@@ -40,6 +41,7 @@ class MinerUClient:
         *,
         http_client: AsyncHttpClient = outbound_http_client,
     ) -> None:
+        self.provider = settings.MINERU_PROVIDER
         self.base_url = settings.MINERU_BASE_URL.rstrip("/")
         self.http_client = http_client
         self.status_timeout = aiohttp.ClientTimeout(
@@ -50,6 +52,12 @@ class MinerUClient:
             total=None,
             connect=settings.MINERU_CONNECT_TIMEOUT_SECONDS,
             sock_read=settings.MINERU_STREAM_IDLE_TIMEOUT_SECONDS,
+        )
+        self.cloud = MinerUCloudClient(
+            http_client=http_client,
+            status_timeout=self.status_timeout,
+            stream_timeout=self.stream_timeout,
+            download_zip=self._download_zip,
         )
 
     async def create_task(
@@ -70,6 +78,16 @@ class MinerUClient:
         response_format_zip: bool = False,
     ) -> str:
         """把 MinIO 文件流直接转发给 MinerU，并返回任务 ID。"""
+        if self.provider == "cloud":
+            return await self.cloud.create_task(
+                filename=filename,
+                content=content,
+                content_length=content_length,
+                parse_method=parse_method,
+                formula_enable=formula_enable,
+                table_enable=table_enable,
+            )
+
         # 禁止 aiohttp 给字段名加引号，以兼容 MinerU multipart 解析器，
         # 同时保留中文文件名。
         form = aiohttp.FormData(quote_fields=False)
@@ -138,6 +156,9 @@ class MinerUClient:
 
     async def get_task(self, task_id: str) -> dict[str, Any]:
         """查询任务当前状态，不获取体积较大的完整解析结果。"""
+        if self._is_cloud_task(task_id):
+            return await self.cloud.get_task(task_id)
+
         session = await self.http_client.get_session()
         async with session.get(
             f"{self.base_url}/tasks/{task_id}",
@@ -147,6 +168,9 @@ class MinerUClient:
 
     async def get_task_result(self, task_id: str) -> dict[str, Any]:
         """任务完成后获取 Markdown、content_list 等完整结果。"""
+        if self._is_cloud_task(task_id):
+            return await self.cloud.get_task_result(task_id)
+
         session = await self.http_client.get_session()
         async with session.get(
             f"{self.base_url}/tasks/{task_id}/result",
@@ -162,32 +186,37 @@ class MinerUClient:
         max_bytes: int,
     ) -> int:
         """把 MinerU ZIP 结果流式写入文件，并限制压缩包下载大小。"""
+        if self._is_cloud_task(task_id):
+            return await self.cloud.download_task_result_zip(
+                task_id=task_id,
+                destination=destination,
+                max_bytes=max_bytes,
+            )
+
+        return await self._download_zip(
+            url=f"{self.base_url}/tasks/{task_id}/result",
+            destination=destination,
+            max_bytes=max_bytes,
+        )
+
+    async def _download_zip(
+        self,
+        *,
+        url: str,
+        destination: BinaryIO,
+        max_bytes: int,
+    ) -> int:
         session = await self.http_client.get_session()
         async with session.get(
-            f"{self.base_url}/tasks/{task_id}/result",
+            url,
             timeout=self.stream_timeout,
         ) as response:
             if response.status >= 400:
                 payload = await response.text()
-                error_type = (
-                    MinerUTransientError
-                    if response.status in {408, 429} or response.status >= 500
-                    else RuntimeError
-                )
+                error_type = mineru_http_error_type(response.status)
                 raise error_type(
                     "MinerU result download failed: "
                     f"status={response.status}, body={payload[:500]}"
-                )
-
-            content_type = response.headers.get(
-                "Content-Type",
-                "",
-            ).lower()
-            if "zip" not in content_type:
-                payload = await response.text()
-                raise RuntimeError(
-                    "MinerU did not return a ZIP result: "
-                    f"content_type={content_type}, body={payload[:500]}"
                 )
 
             content_length = response.content_length
@@ -205,6 +234,10 @@ class MinerUClient:
         await asyncio.to_thread(destination.flush)
         await asyncio.to_thread(destination.seek, 0)
         return total_size
+
+    @staticmethod
+    def _is_cloud_task(task_id: str) -> bool:
+        return task_id.startswith("cloud:")
 
     @staticmethod
     async def _read_response(
