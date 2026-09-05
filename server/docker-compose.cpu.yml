@@ -22,7 +22,7 @@ services:
       args:
         MINERU_MODEL_DOWNLOAD_SOURCE: ${MINERU_MODEL_DOWNLOAD_SOURCE:-huggingface}
     image: auditmind-mineru-cpu:3.4.2
-    container_name: mineru-api-cpu
+    container_name: auditmind-mineru-cpu
     restart: unless-stopped
     entrypoint: mineru-api
     command:
