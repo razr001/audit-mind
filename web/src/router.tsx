@@ -1,4 +1,5 @@
 import { createRootRoute, createRoute, createRouter, lazyRouteComponent, Outlet, redirect } from '@tanstack/react-router'
+import { AuthenticatedLayout } from './components/layout/AppLayout'
 import { RouteLoading } from './components/RouteLoading'
 import { getAccessToken } from './lib/auth-token'
 
@@ -26,7 +27,7 @@ const authenticatedRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: '_authenticated',
   beforeLoad: requireAuthentication,
-  component: () => <Outlet />,
+  component: AuthenticatedLayout,
 })
 
 const indexRoute = createRoute({

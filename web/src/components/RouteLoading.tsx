@@ -7,7 +7,7 @@ export function RouteLoading() {
   const { mode } = useTheme()
 
   return (
-    <output className="app-shell grid min-h-screen place-items-center bg-[var(--bg)]" data-theme={mode} aria-live="polite">
+    <output className="route-loading app-shell grid min-h-screen place-items-center bg-[var(--bg)]" data-theme={mode} aria-live="polite">
       <Spin size="large" description={t('common.loading')} />
     </output>
   )

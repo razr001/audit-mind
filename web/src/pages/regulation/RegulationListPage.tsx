@@ -80,7 +80,6 @@ export function RegulationListPage() {
 
   return (
     <AppLayout
-      activeNavigation="regulations"
       headerStart={<HeaderBreadcrumb icon={<HomeOutlined />} section={t('regulation.knowledgeCenter')} current={t('regulation.title')} />}
     >
       <div className="reveal mx-auto max-w-[1580px] px-[3.2vw] pt-3.5 pb-14 max-[760px]:px-4.5 max-[760px]:pt-3 max-[760px]:pb-10">

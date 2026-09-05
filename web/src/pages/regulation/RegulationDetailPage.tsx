@@ -53,7 +53,7 @@ export function RegulationDetailPage() {
   }
   const changeSourcePage = (page: number) => setSourceLocation({ regulationId, page })
 
-  return <AppLayout activeNavigation="regulations" headerStart={<HeaderBreadcrumb icon={<BookOutlined />} section={t('regulation.knowledgeCenter')} current={t('regulation.detail')} />}>
+  return <AppLayout headerStart={<HeaderBreadcrumb icon={<BookOutlined />} section={t('regulation.knowledgeCenter')} current={t('regulation.detail')} />}>
     <main className="regulation-detail-page reveal px-[2vw] pt-4 pb-8 max-[760px]:px-3">
       <Button className="mb-3" type="text" icon={<ArrowLeftOutlined />} onClick={() => void navigate({ to: '/regulation' })}>{t('regulation.back')}</Button>
       {(detailQuery.isLoading || currentUser.isLoading) && <div className="grid min-h-80 place-items-center"><Spin /></div>}

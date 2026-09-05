@@ -53,7 +53,7 @@ export function AuditCreatePage() {
   const submit = (values: AuditCreateValues) => { if (submitting) return; setSubmitting(true); mutation.mutate({ values, submittedSourceType: sourceType }) }
 
   return (
-    <AppLayout activeNavigation="tasks" headerStart={<HeaderBreadcrumb icon={<AuditOutlined />} section={t('audit.title')} current={t('audit.create.breadcrumb')} />}>
+    <AppLayout headerStart={<HeaderBreadcrumb icon={<AuditOutlined />} section={t('audit.title')} current={t('audit.create.breadcrumb')} />}>
       <div className="audit-page reveal mx-auto max-w-3xl px-[3.2vw] pt-5 pb-14 max-[760px]:px-4.5">
         <section className="mb-5"><h1 className="m-0 text-2xl font-semibold">{t('audit.create.heading')}</h1><p className="mt-2 text-xs text-[var(--muted)]">{t('audit.create.subtitle')}</p></section>
         <Form form={form} layout="vertical" initialValues={{ files: [] }} onFinish={submit}>

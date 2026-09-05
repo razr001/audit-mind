@@ -31,7 +31,7 @@ export function AuditListPage() {
   const auditStageLabels = getAuditStageLabels(t)
 
   return (
-    <AppLayout activeNavigation="tasks" headerStart={<HeaderBreadcrumb icon={<AuditOutlined />} section={t('audit.center')} current={t('audit.title')} />}>
+    <AppLayout headerStart={<HeaderBreadcrumb icon={<AuditOutlined />} section={t('audit.center')} current={t('audit.title')} />}>
       <div className="audit-page reveal mx-auto max-w-[1580px] px-[3.2vw] pt-3.5 pb-14 max-[760px]:px-4.5">
         <section className="mb-5 flex items-end justify-between gap-4 max-[760px]:items-stretch max-[760px]:flex-col">
           <div><p className="mb-1! text-[7px] tracking-[1.5px] text-(--mint)">DOCUMENT AUDIT / 01</p><h1 className="m-0 text-[24px] font-semibold">{t('audit.title')}</h1><p className="mt-1 mb-0 text-[11px] text-[var(--muted)]">{t('audit.subtitle')}</p></div>

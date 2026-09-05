@@ -74,7 +74,7 @@ export function AuditDetailPage() {
   })
   const changePage = (next: number) => { setSelectedFinding(undefined); setPageNumber(next) }
 
-  return <AppLayout activeNavigation="tasks" headerStart={<HeaderBreadcrumb icon={<AuditOutlined />} section={t('audit.title')} current={task?.documentFilename ?? t('audit.taskDetails')} />}>
+  return <AppLayout headerStart={<HeaderBreadcrumb icon={<AuditOutlined />} section={t('audit.title')} current={task?.documentFilename ?? t('audit.taskDetails')} />}>
     <div className="audit-workbench reveal px-[2vw] py-4 max-[760px]:px-3">
       {!task ? <div className="grid min-h-64 place-items-center">{taskQuery.isError || currentUser.isError ? <Alert type="error" message={t('audit.loadFailed')} /> : <Spin />}</div> : <>
         <section className="audit-workbench-head panel mb-3 p-3!">

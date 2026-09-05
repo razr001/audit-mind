@@ -163,7 +163,6 @@ export function AssistantPage() {
 
   return (
     <AppLayout
-      activeNavigation="assistant"
       headerStart={<div className="flex items-center gap-2"><Button className="min-[901px]:hidden" type="text" icon={<MenuOutlined />} onClick={() => setHistoryOpen(true)} /><HeaderBreadcrumb icon={<HomeOutlined />} section={t('assistant.workspace')} current={t('assistant.title')} /></div>}
     >
       <div className="flex h-[calc(100vh-78px)] min-h-[560px] overflow-hidden">

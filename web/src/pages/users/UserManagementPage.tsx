@@ -83,7 +83,7 @@ export function UserManagementPage() {
   ]
 
   return (
-    <AppLayout activeNavigation="users" headerStart={<HeaderBreadcrumb icon={<TeamOutlined />} section={t('users.center')} current={t('users.title')} />}>
+    <AppLayout headerStart={<HeaderBreadcrumb icon={<TeamOutlined />} section={t('users.center')} current={t('users.title')} />}>
       <div className="reveal mx-auto max-w-[1180px] px-[3.2vw] pt-3.5 pb-14 max-[760px]:px-4.5">
         <section className="mb-5 flex items-end justify-between gap-4 max-[760px]:items-stretch max-[760px]:flex-col">
           <div><p className="mb-1! text-[7px] tracking-[1.5px] text-(--mint)">IDENTITY CONTROL / 01</p><h1 className="m-0 text-[24px] font-semibold">{t('users.title')}</h1><p className="mt-1 mb-0 text-[11px] text-[var(--muted)]">{t('users.subtitle')}</p></div>
