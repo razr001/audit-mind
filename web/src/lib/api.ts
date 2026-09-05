@@ -34,6 +34,7 @@ export const refreshAccessToken = createRefreshCoordinator(
       return token
     }),
   setAccessToken,
+  { readStoredToken: getAccessToken },
 )
 
 api.interceptors.response.use(
